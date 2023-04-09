@@ -8,6 +8,7 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CompositeBehaviour;
 import jade.core.behaviours.FSMBehaviour;
@@ -24,6 +25,7 @@ import jade.util.leap.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -51,6 +53,7 @@ public class WalkToB extends FSMBehaviour {
     private List<String> agentNames;
     
     private Map<String, String> locationOtherAgents = new HashMap<String, String>();
+    private String originalLoc;
     private String goalLoc;
     
     /**
@@ -60,23 +63,22 @@ public class WalkToB extends FSMBehaviour {
      */
     public WalkToB(final AbstractDedaleAgent myAgent, MapRepresentation myMap, List<String> agentNames) {
         super(myAgent);
+        WalkToDestinationAvoidance walkToDestination = new WalkToDestinationAvoidance(myAgent, myMap);
         this.registerFirstState(new OneShotBehaviour(myAgent) {
 			@Override
 			public void action() {
-		    	if (WalkToB.this.myMap == null) {
-		    		WalkToB.this.myMap = new MapRepresentation();
-		    	}
+				originalLoc = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
 			}}, "InitVariables");
 
         OrderCheckingBehaviour findingBehaivours = new OrderCheckingBehaviour(myAgent);
         findingBehaivours.addBehaviour(new ShareLocationReceiver(myAgent, agentNames, locationOtherAgents));
         findingBehaivours.addBehaviour(new CheckingBehaviour(myAgent) {
         	public boolean done() {
-	        	for (String agent : agentNames) {        		
+	        	for (String agent : agentNames) {
 	        		String loc = locationOtherAgents.get(agent);
 	        		if (loc != null) {
-	            		System.out.println("Goal found!");
 	        			goalLoc = loc;
+	        			walkToDestination.setObjective(goalLoc);
 	        			return true;
 	        		}
 	        	}
@@ -84,13 +86,28 @@ public class WalkToB extends FSMBehaviour {
         }});
         findingBehaivours.addBehaviour(new MyExploBehaviour(myAgent, myMap));
         this.registerState(findingBehaivours, "Finding");
-        this.registerState(new ShareMapBehaviour(myAgent, myMap, agentNames), "Sharing");
-        this.registerLastState(new OneShotBehaviour(myAgent) {
+        SequentialBehaviour seq = new SequentialBehaviour();
+        seq.addSubBehaviour(new ShareMapBehaviour(myAgent, agentNames, myMap));
+        seq.addSubBehaviour(new OneShotBehaviour() {
 			@Override
 			public void action() {
-				System.out.println("STUB: We need to go to the user's location");
+				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+		        msg.setProtocol("SHARE-ORIGINAL-LOC");
+		        msg.setSender(this.myAgent.getAID());
+		        for (String agentName : agentNames) {
+		            msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+		        }
+
+		        try {
+		            msg.setContentObject(originalLoc);
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+		        ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
 			}
-		}, "Found");
+		});
+        this.registerState(seq, "Sharing");
+        this.registerLastState(walkToDestination, "Found");
         this.registerTransition("InitVariables", "Finding", 0);
         this.registerTransition("Finding", "Sharing", 0);
         this.registerTransition("Sharing", "Found", 0);

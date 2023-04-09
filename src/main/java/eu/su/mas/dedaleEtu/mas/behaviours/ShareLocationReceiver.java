@@ -18,27 +18,32 @@ public class ShareLocationReceiver extends SimpleBehaviour {
 	
 	private List<String> senders;
 	private Map<String, String> locations;
-	MessageTemplate msgTemplate;
+	MessageTemplate msgTemplate = null;
 
 	ShareLocationReceiver(AbstractDedaleAgent agent, List<String> senders, Map<String, String> locations) {
 		super(agent);
-		this.msgTemplate = /*MessageTemplate.and(
+		this.locations = locations;
+		MessageTemplate filter = MessageTemplate.and(
 	            MessageTemplate.MatchProtocol("SHARE-CURRLOC"),
-	            MessageTemplate.MatchPerformative(ACLMessage.INFORM));*/
+	            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 				MessageTemplate.MatchAll();
-		/*for(String agentName : senders) {
-			this.msgTemplate = MessageTemplate.and(this.msgTemplate, 
-					MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)));
-		}*/
+		
+		for(String agentName : senders) {
+			if (this.msgTemplate == null) {
+				this.msgTemplate = MessageTemplate.and(MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)), filter);
+			} else {
+				this.msgTemplate = MessageTemplate.or(this.msgTemplate, 
+					MessageTemplate.and(MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)), filter));
+			}
+		}
 	}
 
 	@Override
 	public void action() {
 		ACLMessage msg = myAgent.receive(msgTemplate);
 		if (msg != null) {
-			System.out.println(msg);
 			try {
-				locations.put(msg.getSender().toString(), (String) msg.getContentObject());
+				locations.put(msg.getSender().getLocalName(), (String) msg.getContentObject());
 			} catch (UnreadableException e) {
 				e.printStackTrace();
 			}			

@@ -20,7 +20,7 @@ import java.util.List;
  * @author hc
  */
 public class ShareMapBehaviour extends OneShotBehaviour {
-    private final MapRepresentation myMap;
+    private MapRepresentation myMap;
     private final List<String> receivers;
 
     /**
@@ -29,12 +29,12 @@ public class ShareMapBehaviour extends OneShotBehaviour {
      * @param myMap     (the map to share)
      * @param receivers the list of agents to send the map to
      */
-    public ShareMapBehaviour(Agent a, MapRepresentation myMap, List<String> receivers) {
+    public ShareMapBehaviour(Agent a, List<String> receivers, MapRepresentation myMap) {
         super(a);
-        this.myMap = myMap;
         this.receivers = receivers;
+    	this.myMap = myMap;
     }
-
+    
     /**
      *
      */
@@ -42,9 +42,6 @@ public class ShareMapBehaviour extends OneShotBehaviour {
 
     @Override
     public void action() {
-        //4) At each time step, the agent blindly send all its graph to its surrounding to illustrate how to share its knowledge (the topology currently) with the others agents.
-        // If it was written properly, this sharing action should be in a dedicated behaviour set, the receivers be automatically computed, and only a subgraph would be shared.
-
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.setProtocol("SHARE-TOPO");
         msg.setSender(this.myAgent.getAID());

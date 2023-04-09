@@ -6,6 +6,8 @@ import eu.su.mas.dedaleEtu.mas.behaviours.FastWalk;
 import eu.su.mas.dedaleEtu.mas.behaviours.RandomWalkBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SayHelloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareLocation;
+import eu.su.mas.dedaleEtu.mas.behaviours.WalkToB;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
@@ -30,9 +32,18 @@ public class LabAgentB extends AbstractDedaleAgent {
 		
 		// use them as parameters for your behaviours is you want
 		List<String> receivers = new ArrayList<String>();
-		receivers.add("A@SIDPlatform");
+		receivers.add("A");
 		List<Behaviour> lb = new ArrayList<>();
-		lb.add(new ShareLocation(this, receivers));
+        //lb.add(new FastWalk(this));
+        lb.add(
+        		new OneShotBehaviour(this) {
+					
+					@Override
+					public void action() {
+		        		myAgent.addBehaviour(new ShareLocation((AbstractDedaleAgent) myAgent, receivers));
+					}
+				}
+        );
         //lb.add(new FastWalk(this));
 
 		// MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
