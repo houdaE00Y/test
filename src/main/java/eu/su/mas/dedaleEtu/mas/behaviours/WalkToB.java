@@ -8,12 +8,23 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CompositeBehaviour;
+import jade.core.behaviours.FSMBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
+import jade.core.behaviours.TickerBehaviour;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import jade.util.leap.Collection;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * <pre>
@@ -29,17 +40,20 @@ import java.util.List;
  *
  * @author hc
  */
-public class WalkToB extends SimpleBehaviour {
+public class WalkToB extends FSMBehaviour {
     private static final long serialVersionUID = 8567689731496787661L;
-    private boolean finished = false;
 
     /**
      * Current knowledge of the agent regarding the environment
      */
     private MapRepresentation myMap;
 
-    private final List<String> list_agentNames;
-
+    private List<String> agentNames;
+    
+    private Map<String, String> locationOtherAgents = new HashMap<String, String>();
+    private String goalLoc;
+    
+    
     /**
      * @param myAgent    the agent using this behaviour
      * @param myMap      known map of the world the agent is living in
@@ -47,94 +61,41 @@ public class WalkToB extends SimpleBehaviour {
      */
     public WalkToB(final AbstractDedaleAgent myAgent, MapRepresentation myMap, List<String> agentNames) {
         super(myAgent);
-        this.myMap = myMap;
-        this.list_agentNames = agentNames;
-    }
+        this.registerFirstState(new OneShotBehaviour(myAgent) {
+			@Override
+			public void action() {
+		    	if (WalkToB.this.myMap == null) {
+		    		WalkToB.this.myMap = new MapRepresentation();
+		    	}				
+			}}, "InitVariables");
 
-    @Override
-    public void action() {
-        if (this.myMap == null) {
-            this.myMap = new MapRepresentation();
-            //this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent, 500, this.myMap, list_agentNames));
-        }
+		List<Behaviour> findingBehaivours = new ArrayList<Behaviour>();
+        findingBehaivours.add(new ShareLocationReceiver(myAgent, agentNames, locationOtherAgents));
+        findingBehaivours.add(new CheckingBehaviour(myAgent) {
+        	public boolean done() {
+	        	for (String agent : agentNames) {        		
+	        		String loc = locationOtherAgents.get(agent);
+	        		if (loc != null) {
+	        			goalLoc = loc;
+	        			return true;
+	        		}
+	        	}
+	        	return false;
+        }});
+        findingBehaivours.add(new MyExploBehaviour(myAgent, myMap));
+        this.registerState(new OrderCheckingBehaviour(myAgent, findingBehaivours), "Finding");
+        this.registerState(new ShareMapBehaviour(myAgent, myMap, agentNames), "Sharing");
+        this.registerLastState(new OneShotBehaviour(myAgent) {
+			@Override
+			public void action() {
+				System.out.println("STUB: We need to go to the user's location");
+			}
+		}, "Found");
+        this.registerTransition("InitVariables", "Finding", 0);
+        this.registerTransition("Finding", "Sharing", 0);
+        this.registerTransition("Sharing", "Found", 0);
 
-        //0) Retrieve the current position
-        String myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
-
-        //System.out.print(this.myAgent.getLocalName() + " POS: " + myPosition);
-        if (myPosition != null) {
-            //List of observable from the agent's current position
-            List<Couple<Location, List<Couple<Observation, Integer>>>> lobs = ((AbstractDedaleAgent) this.myAgent).observe();//myPosition
-            //System.out.println(" " + lobs);
-            // Just added here to let you see what the agent is doing, otherwise it will be too quick
-            try {
-                this.myAgent.doWait(100);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            //1) remove the current node from openlist and add it to closedNodes.
-            this.myMap.addNode(myPosition, MapAttribute.closed);
-
-            //2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
-            String nextNode = null;
-            for (Couple<Location, List<Couple<Observation, Integer>>> lob : lobs) {
-            	if (!lob.getRight().isEmpty()) {
-            		System.out.println("A Found: " + lob.getRight().get(0));
-            	}
-                String nodeId = lob.getLeft().getLocationId();
-                boolean isNewNode = this.myMap.addNewNode(nodeId);
-                boolean isWindNode= !lob.getRight().isEmpty() && lob.getRight().get(0).getLeft() == Observation.WIND;
-                //the node may exist, but not necessarily the edge
-                if (!myPosition.equals(nodeId)) {
-                    this.myMap.addEdge(myPosition, nodeId);
-                    if (nextNode == null && isNewNode && !isWindNode) nextNode = nodeId;
-                }
-              //Si es un nodo viento no creamos arista
-                // si spawn es en un nodo viento caca!
-                if (isWindNode)
-                    this.myMap.addNode(nodeId, MapAttribute.closed);
-            }
-            
-            //3) while openNodes is not empty, continues.
-            if (!this.myMap.hasOpenNode()) {
-                //Explo finished
-                finished = true;
-                System.out.println(this.myAgent.getLocalName() + " - Exploration successufully done, behaviour removed.");
-            } else {
-                //4) select next move.
-                //4.1 If there exist one open node directly reachable, go for it,
-                //	 otherwise choose one from the openNode list, compute the shortestPath and go for it
-                if (nextNode == null) {
-                    //no directly accessible openNode
-                    //chose one, compute the path and take the first step.
-                    nextNode = this.myMap.getShortestPathToClosestOpenNode(myPosition).get(0);
-                }
-
-                //5) At each time step, the agent check if he received a graph from a teammate.
-                // If it was written properly, this sharing action should be in a dedicated behaviour set.
-                MessageTemplate msgTemplate = MessageTemplate.and(
-                        MessageTemplate.MatchProtocol("SHARE-TOPO"),
-                        MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-                ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
-                if (msgReceived != null) {
-                    try {
-                        SerializableSimpleGraph<String, MapAttribute> sgreceived =
-                                (SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
-                        this.myMap.mergeMap(sgreceived);
-                    } catch (UnreadableException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-                
-                ((AbstractDedaleAgent) this.myAgent).moveTo(new gsLocation(nextNode));
-            }
-        }
-    }
-
-    @Override
-    public boolean done() {
-        return finished;
+        this.myMap  = myMap;
+        this.agentNames = agentNames;
     }
 }

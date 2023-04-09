@@ -55,7 +55,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
     public void action() {
         if (this.myMap == null) {
             this.myMap = new MapRepresentation();
-            this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent, 500, this.myMap, list_agentNames));
+            //this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent, 500, this.myMap, list_agentNames));
         }
 
         //0) Retrieve the current position
