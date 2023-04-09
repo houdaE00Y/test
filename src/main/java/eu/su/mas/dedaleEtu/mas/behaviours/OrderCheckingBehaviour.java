@@ -14,11 +14,14 @@ public class OrderCheckingBehaviour extends CompositeBehaviour {
 	private ArrayList subBehaviours = new ArrayList();
 	int current = 0;
 	
-	public OrderCheckingBehaviour(AbstractDedaleAgent a, List<Behaviour> subBehaviours) {
+	public OrderCheckingBehaviour(AbstractDedaleAgent a) {
 		super(a);
-		for (Behaviour subBehaviour : subBehaviours)
+	}
+	
+	void addBehaviour(Behaviour subBehaviour) {
 		this.subBehaviours.add(subBehaviour);
 	}
+	
 	@Override
 	protected void scheduleFirst() {
 		current = 0;
@@ -37,6 +40,13 @@ public class OrderCheckingBehaviour extends CompositeBehaviour {
 
 	@Override
 	protected Behaviour getCurrent() {
+		Behaviour b = (Behaviour) subBehaviours.get(current);
+		int counter = 0;
+		while (!b.isRunnable() && counter != subBehaviours.size()) {
+			scheduleNext(false, 0);
+			b = (Behaviour) subBehaviours.get(current);
+			++counter;
+		}		
 		return (Behaviour) subBehaviours.get(current);
 	}
 

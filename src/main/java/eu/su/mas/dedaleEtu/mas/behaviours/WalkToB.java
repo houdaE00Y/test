@@ -53,7 +53,6 @@ public class WalkToB extends FSMBehaviour {
     private Map<String, String> locationOtherAgents = new HashMap<String, String>();
     private String goalLoc;
     
-    
     /**
      * @param myAgent    the agent using this behaviour
      * @param myMap      known map of the world the agent is living in
@@ -66,24 +65,25 @@ public class WalkToB extends FSMBehaviour {
 			public void action() {
 		    	if (WalkToB.this.myMap == null) {
 		    		WalkToB.this.myMap = new MapRepresentation();
-		    	}				
+		    	}
 			}}, "InitVariables");
 
-		List<Behaviour> findingBehaivours = new ArrayList<Behaviour>();
-        findingBehaivours.add(new ShareLocationReceiver(myAgent, agentNames, locationOtherAgents));
-        findingBehaivours.add(new CheckingBehaviour(myAgent) {
+        OrderCheckingBehaviour findingBehaivours = new OrderCheckingBehaviour(myAgent);
+        findingBehaivours.addBehaviour(new ShareLocationReceiver(myAgent, agentNames, locationOtherAgents));
+        findingBehaivours.addBehaviour(new CheckingBehaviour(myAgent) {
         	public boolean done() {
 	        	for (String agent : agentNames) {        		
 	        		String loc = locationOtherAgents.get(agent);
 	        		if (loc != null) {
+	            		System.out.println("Goal found!");
 	        			goalLoc = loc;
 	        			return true;
 	        		}
 	        	}
 	        	return false;
         }});
-        findingBehaivours.add(new MyExploBehaviour(myAgent, myMap));
-        this.registerState(new OrderCheckingBehaviour(myAgent, findingBehaivours), "Finding");
+        findingBehaivours.addBehaviour(new MyExploBehaviour(myAgent, myMap));
+        this.registerState(findingBehaivours, "Finding");
         this.registerState(new ShareMapBehaviour(myAgent, myMap, agentNames), "Sharing");
         this.registerLastState(new OneShotBehaviour(myAgent) {
 			@Override

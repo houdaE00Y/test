@@ -15,7 +15,7 @@ public class MyExploBehaviour extends TickerBehaviour {
     private MapRepresentation myMap;
 	private static final long serialVersionUID = 1L;
 	MyExploBehaviour(final AbstractDedaleAgent myAgent, MapRepresentation myMap) {
-        super(myAgent, 100);
+        super(myAgent, 20);
         this.myMap = myMap;
 	}
 	
@@ -73,7 +73,7 @@ public class MyExploBehaviour extends TickerBehaviour {
             //3) while openNodes is not empty, continues.
             if (!this.myMap.hasOpenNode()) {
                 //Explo finished
-            	this.stop();
+            	//this.stop();
                 System.out.println(this.myAgent.getLocalName() + " - Exploration successfully done. No agent found");
             } else {
                 //4) select next move.

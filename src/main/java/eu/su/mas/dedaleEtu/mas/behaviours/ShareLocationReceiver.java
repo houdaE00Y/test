@@ -22,13 +22,14 @@ public class ShareLocationReceiver extends SimpleBehaviour {
 
 	ShareLocationReceiver(AbstractDedaleAgent agent, List<String> senders, Map<String, String> locations) {
 		super(agent);
-		this.msgTemplate = MessageTemplate.and(
+		this.msgTemplate = /*MessageTemplate.and(
 	            MessageTemplate.MatchProtocol("SHARE-CURRLOC"),
-	            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-		for(String agentName : senders) {
+	            MessageTemplate.MatchPerformative(ACLMessage.INFORM));*/
+				MessageTemplate.MatchAll();
+		/*for(String agentName : senders) {
 			this.msgTemplate = MessageTemplate.and(this.msgTemplate, 
 					MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)));
-		}
+		}*/
 	}
 
 	@Override
