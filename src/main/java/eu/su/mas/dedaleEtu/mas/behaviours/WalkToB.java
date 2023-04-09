@@ -28,20 +28,6 @@ import java.util.Map;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * <pre>
- * This behaviour allows an agent to explore the environment and learn the associated topological map.
- * The algorithm is a pseudo - DFS computationally consuming because its not optimised at all.
- *
- * When all the nodes around him are visited, the agent randomly select an open node and go there to restart its dfs.
- * This (non optimal) behaviour is done until all nodes are explored.
- *
- * Warning, this behaviour does not save the content of visited nodes, only the topology.
- * Warning, the sub-behaviour ShareMap periodically share the whole map
- * </pre>
- *
- * @author hc
- */
 public class WalkToB extends FSMBehaviour {
     private static final long serialVersionUID = 8567689731496787661L;
 
@@ -64,6 +50,7 @@ public class WalkToB extends FSMBehaviour {
     public WalkToB(final AbstractDedaleAgent myAgent, MapRepresentation myMap, List<String> agentNames) {
         super(myAgent);
         WalkToDestinationAvoidance walkToDestination = new WalkToDestinationAvoidance(myAgent, myMap);
+        WalkToDestinationAvoidance walkToLateralOfDestination = new WalkToDestinationAvoidance(myAgent, myMap);
         this.registerFirstState(new OneShotBehaviour(myAgent) {
 			@Override
 			public void action() {
@@ -86,6 +73,45 @@ public class WalkToB extends FSMBehaviour {
         }});
         findingBehaivours.addBehaviour(new MyExploBehaviour(myAgent, myMap));
         this.registerState(findingBehaivours, "Finding");
+        
+        // A might have walked away from B...
+        OrderCheckingBehaviour makeSureToBeBack = new OrderCheckingBehaviour(myAgent);
+
+        makeSureToBeBack.addBehaviour(new CheckingBehaviour(myAgent) {
+			@Override
+			public boolean done() {
+				String currLoc = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
+				for (Couple<Location, List<Couple<Observation, Integer>>> lob : ((AbstractDedaleAgent) this.myAgent)
+						.observe()) {
+					String nodeId = lob.getLeft().getLocationId();
+					myMap.addNewNode(nodeId);
+					boolean isWindNode = false;
+					// Check wind
+					for (Couple<Observation, Integer> c : lob.getRight()) {
+						if (c.getLeft() == Observation.WIND) {
+							isWindNode = true;
+						}
+					}
+					
+					// Si es un nodo viento no creamos arista
+					// si spawn es en un nodo viento caca!
+					if (isWindNode)
+						myMap.addNode(nodeId, MapAttribute.closed);
+					if (!currLoc.equals(nodeId))
+						myMap.addEdge(currLoc, nodeId);
+				}
+				List<String> route = myMap.getShortestPath(currLoc, goalLoc);
+				System.out.println("Curr. Pos: " + currLoc + " route: " + goalLoc);
+				if (route.size() <= 1) {
+					return true;
+				}
+				walkToLateralOfDestination.setObjective(route.get(route.size()-2));
+				return false;
+			}
+		});
+        makeSureToBeBack.addBehaviour(walkToLateralOfDestination);
+        this.registerState(makeSureToBeBack, "GoBack");
+        
         SequentialBehaviour seq = new SequentialBehaviour();
         seq.addSubBehaviour(new ShareMapBehaviour(myAgent, agentNames, myMap));
         seq.addSubBehaviour(new OneShotBehaviour() {
@@ -107,10 +133,20 @@ public class WalkToB extends FSMBehaviour {
 			}
 		});
         this.registerState(seq, "Sharing");
-        this.registerLastState(walkToDestination, "Found");
+        this.registerState(walkToDestination, "Found");
+        this.registerLastState(new OneShotBehaviour(myAgent) {
+			
+			@Override
+			public void action() {
+				myAgent.addBehaviour(new WalkBackToA((AbstractDedaleAgent)myAgent, agentNames));
+			}
+		}, "ChangeRole");
+
         this.registerTransition("InitVariables", "Finding", 0);
-        this.registerTransition("Finding", "Sharing", 0);
+        this.registerTransition("Finding", "GoBack", 0);
+        this.registerTransition("GoBack", "Sharing", 0);
         this.registerTransition("Sharing", "Found", 0);
+        this.registerTransition("Found", "ChangeRole", 0);
 
         this.myMap  = myMap;
         this.agentNames = agentNames;

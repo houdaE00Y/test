@@ -6,6 +6,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.FastWalk;
 import eu.su.mas.dedaleEtu.mas.behaviours.RandomWalkBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SayHelloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareLocation;
+import eu.su.mas.dedaleEtu.mas.behaviours.WalkBackToA;
 import eu.su.mas.dedaleEtu.mas.behaviours.WalkToB;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.Agent;
@@ -40,7 +41,7 @@ public class LabAgentB extends AbstractDedaleAgent {
 					
 					@Override
 					public void action() {
-		        		myAgent.addBehaviour(new ShareLocation((AbstractDedaleAgent) myAgent, receivers));
+		        		myAgent.addBehaviour(new WalkBackToA((AbstractDedaleAgent) myAgent, receivers));
 					}
 				}
         );

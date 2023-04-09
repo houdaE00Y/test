@@ -5,13 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 
 public class WalkBackToA extends FSMBehaviour {
     private static final long serialVersionUID = 8567689731496787661L;
@@ -19,14 +24,12 @@ public class WalkBackToA extends FSMBehaviour {
     /**
      * Current knowledge of the agent regarding the environment
      */
-    private MapRepresentation myMap = null;
+    private MapRepresentation myMap = new MapRepresentation();
+    private boolean mapReceived = false;
+    private String goalLoc = null;
 
     private List<String> agentNames;
-    
-    private Map<String, String> locationOtherAgents = new HashMap<String, String>();
-    private String originalLoc;
-    private String goalLoc;
-    
+        
     /**
      * @param myAgent    the agent using this behaviour
      * @param agentNames name of the agents to share the map with
@@ -35,55 +38,83 @@ public class WalkBackToA extends FSMBehaviour {
         super(myAgent);
         this.agentNames = agentNames;
         WalkToDestinationAvoidance walkToDestination = new WalkToDestinationAvoidance(myAgent, myMap);
-        this.registerFirstState(new OneShotBehaviour(myAgent) {
-			@Override
-			public void action() {
-				originalLoc = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
-			}}, "InitVariables");
-
         OrderCheckingBehaviour findingBehaivours = new OrderCheckingBehaviour(myAgent);
-        findingBehaivours.addBehaviour(new ShareLocationReceiver(myAgent, agentNames, locationOtherAgents));
-        findingBehaivours.addBehaviour(new CheckingBehaviour(myAgent) {
-        	public boolean done() {
-	        	for (String agent : agentNames) {
-	        		String loc = locationOtherAgents.get(agent);
-	        		if (loc != null) {
-	        			goalLoc = loc;
-	        			walkToDestination.setObjective(goalLoc);
-	        			return true;
-	        		}
-	        	}
-	        	return false;
-        }});
-        findingBehaivours.addBehaviour(new MyExploBehaviour(myAgent, myMap));
-        this.registerState(findingBehaivours, "Finding");
-        SequentialBehaviour seq = new SequentialBehaviour();
-        seq.addSubBehaviour(new ShareMapBehaviour(myAgent, agentNames, myMap));
-        seq.addSubBehaviour(new OneShotBehaviour() {
+        findingBehaivours.addBehaviour(new ShareLocation(myAgent, agentNames));
+        findingBehaivours.addBehaviour(new SimpleBehaviour(myAgent) {
+			@Override
+			public boolean done() {
+				return false;
+			}
+			
 			@Override
 			public void action() {
-				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-		        msg.setProtocol("SHARE-ORIGINAL-LOC");
-		        msg.setSender(this.myAgent.getAID());
-		        for (String agentName : agentNames) {
-		            msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
-		        }
-
-		        try {
-		            msg.setContentObject(originalLoc);
-		        } catch (IOException e) {
-		            e.printStackTrace();
-		        }
-		        ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
+				MessageTemplate msgTemplate = MessageTemplate.and(
+                        MessageTemplate.MatchProtocol("SHARE-TOPO"),
+                        MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
+                if (msgReceived != null) {
+                    try {
+                        SerializableSimpleGraph<String, MapAttribute> sgreceived =
+                                (SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
+                        mapReceived = true;
+                        myMap.mergeMap(sgreceived);
+                    } catch (UnreadableException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
 			}
 		});
-        this.registerState(seq, "Sharing");
-        this.registerLastState(walkToDestination, "Found");
-        this.registerTransition("InitVariables", "Finding", 0);
-        this.registerTransition("Finding", "Sharing", 0);
-        this.registerTransition("Sharing", "Found", 0);
+        findingBehaivours.addBehaviour(new SimpleBehaviour(myAgent) {
+			@Override
+			public boolean done() {
+				return false;
+			}
+			
+			@Override
+			public void action() {
+				MessageTemplate filter = MessageTemplate.and(
+			            MessageTemplate.MatchProtocol("SHARE-ORIGINAL-LOC"),
+			            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+						MessageTemplate.MatchAll();
+			
+				MessageTemplate msgTemplate = null;
+				for(String agentName : agentNames) {
+					if (msgTemplate == null) {
+						msgTemplate = MessageTemplate.and(MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)), filter);
+					} else {
+						msgTemplate = MessageTemplate.or(msgTemplate, 
+							MessageTemplate.and(MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)), filter));
+					}
+				}
+				ACLMessage msg = myAgent.receive(msgTemplate);
+				if (msg != null) {
+					try {
+						goalLoc = (String) msg.getContentObject();
+						walkToDestination.setObjective(goalLoc);
+					} catch (UnreadableException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+        findingBehaivours.addBehaviour(new CheckingBehaviour(myAgent) {
+			@Override
+			public boolean done() {
+				//System.out.println("goalloc " + goalLoc + " " + mapReceived);
+	        	return  goalLoc != null && mapReceived;
+			}
+		});
+        this.registerFirstState(findingBehaivours, "BroadcastRecv");
+        this.registerState(walkToDestination, "Found");
+        this.registerLastState(new OneShotBehaviour(myAgent) {
+			@Override
+			public void action() {
+				myAgent.addBehaviour(new WalkToB((AbstractDedaleAgent)myAgent, new MapRepresentation(), agentNames));
+			}
+		}, "ChangeRole");
 
-        this.myMap  = myMap;
-        this.agentNames = agentNames;
+        this.registerTransition("BroadcastRecv", "Found", 0);
+        this.registerTransition("Found", "ChangeRole", 0);
     }
 }
