@@ -43,7 +43,7 @@ public class MapRepresentation implements Serializable {
     private final String nodeStyle = defaultNodeStyle + nodeStyle_agent + nodeStyle_open;
 
     private Graph g; //data structure non serializable
-    private Viewer viewer; //ref to the display, non-serializable
+    //private Viewer viewer; //ref to the display, non-serializable
     private Integer nbEdges;//used to generate the edges ids
     private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
 
@@ -53,7 +53,7 @@ public class MapRepresentation implements Serializable {
         this.g = new SingleGraph("My world vision");
         this.g.setAttribute("ui.stylesheet", nodeStyle);
 
-        Platform.runLater(this::openGui);
+        //Platform.runLater(this::openGui);
         //this.viewer = this.g.display();
 
         this.nbEdges = 0;
@@ -134,6 +134,38 @@ public class MapRepresentation implements Serializable {
             return null;
         } else {
             shortestPath.remove(0);//remove the current position
+        }
+        return shortestPath;
+    }
+    
+    // Prerequisite! Agent either in its path, or out of it by one already!
+    public List<String> getOutOfPathByOne(List<String> otherPath, String otherOriginalPos, String currPos) {
+        List<String> shortestPath = new ArrayList<>();
+        
+        int inPathPos = otherPath.indexOf(currPos);
+        if (inPathPos == -1) { // We are not in its path!
+        	return shortestPath;
+        }
+        ;
+        for (int i = inPathPos; i < otherPath.size(); ++i) {
+            String currPathNode = otherPath.get(i);
+            String prevPathNode = i-1 < 0 ? null : otherPath.get(i-1);
+            String nextPathNode = i+1 >= otherPath.size() ? null : otherPath.get(i+1);
+            
+            List<String> notInPath = 
+            g.getNode(currPathNode).edges()
+            	.map(edge -> (edge.getTargetNode().getId().equals(currPathNode) ? edge.getSourceNode().getId() : edge.getTargetNode().getId()))
+            	.filter(otherNode -> !(otherNode.equals(prevPathNode) || otherNode.equals(nextPathNode) || otherNode.equals(otherOriginalPos))).collect(Collectors.toList());
+            System.out.println("Not In Path: " + notInPath);
+            if (notInPath.isEmpty()) {
+            	if (nextPathNode == null) { // we can't get out of the way!
+            		return shortestPath; // at least we'll try...
+            	}
+            	shortestPath.add(nextPathNode);
+            } else {
+            	shortestPath.add(notInPath.get(0));
+            	return shortestPath;
+            }
         }
         return shortestPath;
     }
@@ -219,7 +251,7 @@ public class MapRepresentation implements Serializable {
      */
     private synchronized void closeGui() {
         //once the graph is saved, clear non-serializable components
-        if (this.viewer != null) {
+        /*if (this.viewer != null) {
             //Platform.runLater(() -> {
             try {
                 this.viewer.close();
@@ -228,17 +260,17 @@ public class MapRepresentation implements Serializable {
             }
             //});
             this.viewer = null;
-        }
+        }*/
     }
 
     /**
      * Method called after a migration to reopen GUI components
      */
     private synchronized void openGui() {
-        this.viewer = new FxViewer(this.g, FxViewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);//GRAPH_IN_GUI_THREAD)
+        /*this.viewer = new FxViewer(this.g, FxViewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);//GRAPH_IN_GUI_THREAD)
         viewer.enableAutoLayout();
         viewer.setCloseFramePolicy(FxViewer.CloseFramePolicy.CLOSE_VIEWER);
-        viewer.addDefaultView(true);
+        viewer.addDefaultView(true);*/
 
         g.display();
     }

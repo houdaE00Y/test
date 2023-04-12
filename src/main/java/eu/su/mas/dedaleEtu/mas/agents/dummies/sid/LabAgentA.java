@@ -34,10 +34,9 @@ public class LabAgentA extends AbstractDedaleAgent {
 		List<Behaviour> lb = new ArrayList<>();
 		List<String> agentNames = new ArrayList <String>();
 		agentNames.add("B");
-        //lb.add(new FastWalk(this));
-        lb.add(
+
+		lb.add(
         		new OneShotBehaviour(this) {
-					
 					@Override
 					public void action() {
 		        		myAgent.addBehaviour(new WalkToB((AbstractDedaleAgent) myAgent, new MapRepresentation(), agentNames));

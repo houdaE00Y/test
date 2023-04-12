@@ -49,29 +49,37 @@ public class WalkToB extends FSMBehaviour {
      */
     public WalkToB(final AbstractDedaleAgent myAgent, MapRepresentation myMap, List<String> agentNames) {
         super(myAgent);
+        System.out.println("Agent " + myAgent.getAID().getLocalName() + " becomes A");
         WalkToDestinationAvoidance walkToDestination = new WalkToDestinationAvoidance(myAgent, myMap);
         WalkToDestinationAvoidance walkToLateralOfDestination = new WalkToDestinationAvoidance(myAgent, myMap);
+        WalkToDestinationAvoidance walkOutOfTheWay = new WalkToDestinationAvoidance(myAgent, myMap);
+        
         this.registerFirstState(new OneShotBehaviour(myAgent) {
 			@Override
 			public void action() {
 				originalLoc = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
+				MessageTemplate filter = MessageTemplate.MatchAll();
+				while (((AbstractDedaleAgent) this.myAgent).getCurQueueSize() > 0) {
+	        		ACLMessage msg = myAgent.receive(filter);
+				}
 			}}, "InitVariables");
 
+        MyExploBehaviour explorer = new MyExploBehaviour(myAgent, myMap);
         OrderCheckingBehaviour findingBehaivours = new OrderCheckingBehaviour(myAgent);
         findingBehaivours.addBehaviour(new ShareLocationReceiver(myAgent, agentNames, locationOtherAgents));
-        findingBehaivours.addBehaviour(new CheckingBehaviour(myAgent) {
-        	public boolean done() {
+        findingBehaivours.addBehaviour(new SimpleBehaviour(myAgent) {
+        	public boolean done() {return false;}
+        	public void action() {
 	        	for (String agent : agentNames) {
 	        		String loc = locationOtherAgents.get(agent);
 	        		if (loc != null) {
 	        			goalLoc = loc;
 	        			walkToDestination.setObjective(goalLoc);
-	        			return true;
+	        			explorer.AddKnownObjective(goalLoc);
 	        		}
 	        	}
-	        	return false;
         }});
-        findingBehaivours.addBehaviour(new MyExploBehaviour(myAgent, myMap));
+        findingBehaivours.addBehaviour(explorer);
         this.registerState(findingBehaivours, "Finding");
         
         // A might have walked away from B...
@@ -112,6 +120,73 @@ public class WalkToB extends FSMBehaviour {
         makeSureToBeBack.addBehaviour(walkToLateralOfDestination);
         this.registerState(makeSureToBeBack, "GoBack");
         
+        // A might have walked away from B...
+        OrderCheckingBehaviour getOutOfTheWay = new OrderCheckingBehaviour(myAgent);
+        getOutOfTheWay.addBehaviour(new CheckingBehaviour(myAgent) {
+        	List<String> optimalOtherPath = null;
+			@Override
+			public boolean done() {
+				String currLoc = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
+    			if (optimalOtherPath == null) optimalOtherPath = myMap.getShortestPath(goalLoc, originalLoc);
+    			
+				for (Couple<Location, List<Couple<Observation, Integer>>> lob : ((AbstractDedaleAgent) this.myAgent)
+						.observe()) {
+					String nodeId = lob.getLeft().getLocationId();
+					myMap.addNewNode(nodeId);
+					boolean isWindNode = false;
+					// Check wind
+					for (Couple<Observation, Integer> c : lob.getRight()) {
+						if (c.getLeft() == Observation.WIND) {
+							isWindNode = true;
+						}
+					}
+					
+					// Si es un nodo viento no creamos arista
+					// si spawn es en un nodo viento caca!
+					if (isWindNode)
+						myMap.addNode(nodeId, MapAttribute.closed);
+					if (!currLoc.equals(nodeId))
+						myMap.addEdge(currLoc, nodeId);
+				}
+    			
+    			List<String> getPathOutOfTheWay = myMap.getOutOfPathByOne(optimalOtherPath, goalLoc, currLoc);
+				if (getPathOutOfTheWay.isEmpty()) {
+					return true;
+				}
+    			System.out.println("Other Will do: " + optimalOtherPath);
+    			System.out.println("We'll get out with path: " + currLoc + " " + getPathOutOfTheWay);
+    			walkOutOfTheWay.setObjective(getPathOutOfTheWay.get(getPathOutOfTheWay.size()-1));
+				return false;
+			}
+		});
+        getOutOfTheWay.addBehaviour(walkOutOfTheWay);
+        this.registerState(getOutOfTheWay, "GetOutOfTheWay");
+        
+        this.registerState(new TickerBehaviour(myAgent, 10) {
+			boolean first = true;
+			@Override
+			protected void onTick() {
+				if (first) {first = false; return;}
+				MessageTemplate filter = MessageTemplate.and(
+			            MessageTemplate.MatchProtocol("SCREAM-PASSING"),
+			            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+			
+				MessageTemplate msgTemplate = null;
+				for(String agentName : agentNames) {
+					if (msgTemplate == null) {
+						msgTemplate = MessageTemplate.and(MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)), filter);
+					} else {
+						msgTemplate = MessageTemplate.or(msgTemplate, 
+							MessageTemplate.and(MessageTemplate.MatchSender(new AID(agentName, AID.ISLOCALNAME)), filter));
+					}
+				}
+				ACLMessage msg = myAgent.receive(msgTemplate);
+				if (msg != null) {
+					this.stop();
+				}
+			}
+		}, "WaitForOtherToPass");
+        
         SequentialBehaviour seq = new SequentialBehaviour();
         seq.addSubBehaviour(new ShareMapBehaviour(myAgent, agentNames, myMap));
         seq.addSubBehaviour(new OneShotBehaviour() {
@@ -145,7 +220,9 @@ public class WalkToB extends FSMBehaviour {
         this.registerTransition("InitVariables", "Finding", 0);
         this.registerTransition("Finding", "GoBack", 0);
         this.registerTransition("GoBack", "Sharing", 0);
-        this.registerTransition("Sharing", "Found", 0);
+        this.registerTransition("Sharing", "GetOutOfTheWay", 0);
+        this.registerTransition("GetOutOfTheWay", "WaitForOtherToPass", 0);
+        this.registerTransition("WaitForOtherToPass", "Found", 0);
         this.registerTransition("Found", "ChangeRole", 0);
 
         this.myMap  = myMap;

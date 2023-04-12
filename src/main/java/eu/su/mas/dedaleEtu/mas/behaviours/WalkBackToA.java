@@ -14,6 +14,7 @@ import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
@@ -36,7 +37,18 @@ public class WalkBackToA extends FSMBehaviour {
      */
     public WalkBackToA(final AbstractDedaleAgent myAgent, List<String> agentNames) {
         super(myAgent);
+        System.out.println("Agent " + myAgent.getAID().getLocalName() + " becomes B");
         this.agentNames = agentNames;
+        this.registerFirstState(new OneShotBehaviour(myAgent) {
+			@Override
+			public void action() {
+				MessageTemplate filter = MessageTemplate.MatchAll();
+				while (((AbstractDedaleAgent) this.myAgent).getCurQueueSize() > 0) {
+	        		ACLMessage msg = myAgent.receive(filter);
+				}
+			}}, "InitVariables");
+
+        
         WalkToDestinationAvoidance walkToDestination = new WalkToDestinationAvoidance(myAgent, myMap);
         OrderCheckingBehaviour findingBehaivours = new OrderCheckingBehaviour(myAgent);
         findingBehaivours.addBehaviour(new ShareLocation(myAgent, agentNames));
@@ -76,7 +88,6 @@ public class WalkBackToA extends FSMBehaviour {
 				MessageTemplate filter = MessageTemplate.and(
 			            MessageTemplate.MatchProtocol("SHARE-ORIGINAL-LOC"),
 			            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-						MessageTemplate.MatchAll();
 			
 				MessageTemplate msgTemplate = null;
 				for(String agentName : agentNames) {
@@ -105,16 +116,42 @@ public class WalkBackToA extends FSMBehaviour {
 	        	return  goalLoc != null && mapReceived;
 			}
 		});
-        this.registerFirstState(findingBehaivours, "BroadcastRecv");
-        this.registerState(walkToDestination, "Found");
+        this.registerState(findingBehaivours, "BroadcastRecv");
+
+        this.registerState(new WakerBehaviour(myAgent, 1000) {}, "WaitForOtherToGetOut");
+        
+        OrderCheckingBehaviour walkToDestinationWhileScreaming = new OrderCheckingBehaviour(myAgent);
+        walkToDestinationWhileScreaming.addBehaviour(walkToDestination);
+        walkToDestinationWhileScreaming.addBehaviour(new SimpleBehaviour() {			
+			@Override
+			public boolean done() {
+				return false;
+			}
+			
+			@Override
+			public void action() {
+				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+		        msg.setProtocol("SCREAM-PASSING");
+		        msg.setSender(this.myAgent.getAID());
+		        for (String agentName : agentNames) {
+		            msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+		        }
+
+	            msg.setContent("AHHHH!");
+		        ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
+			}
+		});
+        this.registerState(walkToDestinationWhileScreaming, "Found");
         this.registerLastState(new OneShotBehaviour(myAgent) {
 			@Override
 			public void action() {
 				myAgent.addBehaviour(new WalkToB((AbstractDedaleAgent)myAgent, new MapRepresentation(), agentNames));
 			}
 		}, "ChangeRole");
-
-        this.registerTransition("BroadcastRecv", "Found", 0);
+        
+        this.registerTransition("InitVariables", "BroadcastRecv", 0);
+        this.registerTransition("BroadcastRecv", "WaitForOtherToGetOut", 0);
+        this.registerTransition("WaitForOtherToGetOut", "Found", 0);
         this.registerTransition("Found", "ChangeRole", 0);
     }
 }

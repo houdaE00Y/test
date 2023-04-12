@@ -9,18 +9,40 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 
-public class MyExploBehaviour extends TickerBehaviour {
+public class MyExploBehaviour extends SimpleBehaviour {
     private MapRepresentation myMap;
 	private static final long serialVersionUID = 1L;
+	
+	private String ObjectiveLoc = null;
+	private boolean isDone = false;
+	
+	protected long ciclesUntilUpdate = 20;
+	protected long wakeupTime = 0;
+
 	MyExploBehaviour(final AbstractDedaleAgent myAgent, MapRepresentation myMap) {
-        super(myAgent, 20);
+        super(myAgent);
         this.myMap = myMap;
 	}
 	
 	@Override
-	protected void onTick() {
+	public boolean done() {
+		return isDone;
+	}
+	
+	@Override
+	public void action() {
+		if (ciclesUntilUpdate != 0) {
+			long blockTime = wakeupTime - System.currentTimeMillis();
+			if (blockTime <= 0) {
+				wakeupTime = ciclesUntilUpdate + System.currentTimeMillis();
+			} else {
+				return;
+			}
+		}
+		
 		if (this.myMap  == null) {
             this.myMap  = new MapRepresentation();
             //this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent, 500, WalkToB.this.myMap , list_agentNames));
@@ -74,6 +96,10 @@ public class MyExploBehaviour extends TickerBehaviour {
             if (!this.myMap.hasOpenNode()) {
                 //Explo finished
             	//this.stop();
+            	if (ObjectiveLoc != null) {
+            		isDone = true;
+            		return;
+            	}
                 System.out.println(this.myAgent.getLocalName() + " - Exploration successfully done. No agent found");
             } else {
                 //4) select next move.
@@ -88,5 +114,10 @@ public class MyExploBehaviour extends TickerBehaviour {
             }
         }
 	}
-
+	
+	void AddKnownObjective(String loc) {
+		ObjectiveLoc = loc;
+		this.myMap.addNode(loc, MapAttribute.closed);
+		ciclesUntilUpdate = 0;
+	}
 }
