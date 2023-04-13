@@ -13,6 +13,12 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.WakerBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +27,7 @@ public class LabAgentB extends AbstractDedaleAgent {
 	private int nA;
 	private int nB;
 	private boolean chaser = false;
-	
+		
 	protected void setup() {
 		super.setup();
 		
@@ -32,8 +38,6 @@ public class LabAgentB extends AbstractDedaleAgent {
 				System.out.println("- " + args[i]);
 		
 		// use them as parameters for your behaviours is you want
-		List<String> receivers = new ArrayList<String>();
-		receivers.add("A");
 		List<Behaviour> lb = new ArrayList<>();
         //lb.add(new FastWalk(this));
         lb.add(
@@ -41,6 +45,30 @@ public class LabAgentB extends AbstractDedaleAgent {
 					
 					@Override
 					public void action() {
+						List<String> receivers = new ArrayList<String>();
+
+						// Build the description used as template for the search
+			        	DFAgentDescription template = new DFAgentDescription();
+			        	ServiceDescription templateSd = new ServiceDescription();
+			        	templateSd.setType("polydama-A");
+			        	template.addServices(templateSd);
+			        	SearchConstraints sc = new SearchConstraints();
+			        	// We want to receive 10 results at most
+			        	sc.setMaxResults(Long.valueOf(1000));
+			        	
+			        	DFAgentDescription[] results;
+						try {
+							results = DFService.search(getAgent(), template, sc);
+				        	if (results.length > 0) {
+				        		DFAgentDescription dfd = results[0];
+				        		receivers.add(dfd.getName().getLocalName().toString());
+
+				                System.out.println("Found pal: " + dfd.getName().getLocalName());
+				        	}
+						} catch (FIPAException e) {
+							e.printStackTrace();
+						}
+						
 		        		myAgent.addBehaviour(new WalkBackToA((AbstractDedaleAgent) myAgent, receivers));
 					}
 				}
@@ -49,6 +77,19 @@ public class LabAgentB extends AbstractDedaleAgent {
 
 		// MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
 		addBehaviour(new startMyBehaviours(this, lb));
+		
+		DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+        ServiceDescription sd = new ServiceDescription();
+        sd.setName("polydama-B");
+        sd.setType("polydama-B");
+        sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
+        dfd.addServices(sd);
+        try {
+			DFService.register(this, dfd);
+		} catch (FIPAException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

@@ -11,6 +11,12 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.WakerBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,13 +38,36 @@ public class LabAgentA extends AbstractDedaleAgent {
 		
 		// use them as parameters for your behaviours is you want
 		List<Behaviour> lb = new ArrayList<>();
-		List<String> agentNames = new ArrayList <String>();
-		agentNames.add("B");
 
 		lb.add(
         		new OneShotBehaviour(this) {
 					@Override
 					public void action() {
+						
+						List<String> agentNames = new ArrayList <String>();
+
+						// Build the description used as template for the search
+			        	DFAgentDescription template = new DFAgentDescription();
+			        	ServiceDescription templateSd = new ServiceDescription();
+			        	templateSd.setType("polydama-B");
+			        	template.addServices(templateSd);
+			        	SearchConstraints sc = new SearchConstraints();
+			        	// We want to receive 10 results at most
+			        	sc.setMaxResults(Long.valueOf(1000));
+			        	
+			        	DFAgentDescription[] results;
+						try {
+							results = DFService.search(getAgent(), template, sc);
+				        	if (results.length > 0) {
+				        		DFAgentDescription dfd = results[0];
+				        		agentNames.add(dfd.getName().getLocalName().toString());
+
+				                System.out.println("Found pal: " + dfd.getName().getLocalName());
+				        	}
+						} catch (FIPAException e) {
+							e.printStackTrace();
+						}
+						
 		        		myAgent.addBehaviour(new WalkToB((AbstractDedaleAgent) myAgent, new MapRepresentation(), agentNames));
 					}
 				}
@@ -46,6 +75,19 @@ public class LabAgentA extends AbstractDedaleAgent {
 
 		// MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
 		addBehaviour(new startMyBehaviours(this, lb));
+		
+		DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+        ServiceDescription sd = new ServiceDescription();
+        sd.setName("polydama-A");
+        sd.setType("polydama-A");
+        sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
+        dfd.addServices(sd);
+        try {
+			DFService.register(this, dfd);
+		} catch (FIPAException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
