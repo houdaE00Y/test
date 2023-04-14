@@ -110,6 +110,10 @@ public class MyExploBehaviour extends SimpleBehaviour {
                     //chose one, compute the path and take the first step.
                     nextNode = this.myMap.getShortestPathToClosestOpenNode(myPosition).get(0);
                 }
+                if (nextNode.equals(ObjectiveLoc)) { // Oh no, we are trying to go through B! That's bad...
+                	isDone = true;
+                	return;
+                }
                 ((AbstractDedaleAgent) this.myAgent).moveTo(new gsLocation(nextNode));
             }
         }
