@@ -12,6 +12,7 @@ import org.graphstream.ui.view.Viewer;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -172,20 +173,47 @@ public class MapRepresentation implements Serializable {
 
     public List<String> getShortestPathToClosestOpenNode(String myPosition) {
         //1) Get all openNodes
-        List<String> opennodes = getOpenNodes();
+        Set<String> opennodes = getOpenNodes().stream().collect(Collectors.toUnmodifiableSet());
 
-        //2) select the closest one
-        List<Couple<String, Integer>> lc =
-                opennodes.stream()
-                        .map(on -> (getShortestPath(myPosition, on) != null) ?
-                                new Couple<>(on, getShortestPath(myPosition, on).size()) :
-                                new Couple<>(on, Integer.MAX_VALUE))
-                        .collect(Collectors.toList());
-        //some nodes may be unreachable if the agents do not share at least one common node.
+        HashSet<String> visited = new HashSet<String>();
+        HashMap<String, String> parent = new HashMap<String, String>();
+        PriorityQueue<Couple<Integer, String>> nextToCheck = new PriorityQueue<Couple<Integer,String>>(g.getNodeCount(), new Comparator<Couple<Integer,String>>() {
 
-        Optional<Couple<String, Integer>> closest = lc.stream().min(Comparator.comparing(Couple::getRight));
-        //3) Compute shorterPath
-        return closest.map(nextNode -> getShortestPath(myPosition, nextNode.getLeft())).orElse(null);
+			@Override
+			public int compare(Couple<Integer, String> arg0, Couple<Integer, String> arg1) {
+				return arg0.getLeft().compareTo(arg1.getLeft());
+			}
+        	
+		});
+        nextToCheck.add(new Couple<Integer, String>(0, myPosition));
+        visited.add(myPosition);
+        
+        while (!nextToCheck.isEmpty()) {
+        	Couple<Integer, String> currNodeInfo = nextToCheck.poll();
+        	for (String adjacentNode : g.getNode(currNodeInfo.getRight()).edges().map(edge -> (edge.getTargetNode().getId().equals(currNodeInfo.getRight()) ? edge.getSourceNode().getId() : edge.getTargetNode().getId())).collect(Collectors.toList())) {
+        		if (adjacentNode == null) {
+        			continue;
+        		}
+        		if (!visited.contains(adjacentNode)) {
+	        		if (opennodes.contains(adjacentNode)) {
+	        			
+	        			ArrayList<String> path = new ArrayList<String>();
+	        			path.add(adjacentNode);
+	        			String currentBacktrack = currNodeInfo.getRight();
+	        			while (!currentBacktrack.equals(myPosition)) {
+	        				path.add(currentBacktrack);
+	        				currentBacktrack = parent.get(currentBacktrack);
+		        		}
+	        			Collections.reverse(path);
+	        			return path;
+	        		}
+        			visited.add(adjacentNode);
+        			nextToCheck.add(new Couple<Integer, String>(currNodeInfo.getLeft()+1, adjacentNode));
+        			parent.put(adjacentNode, currNodeInfo.getRight());
+        		}
+        	}
+        }
+        return null;
     }
 
     public List<String> getOpenNodes() {
