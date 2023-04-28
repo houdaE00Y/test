@@ -5,6 +5,7 @@ import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.TestBDIAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -223,6 +224,16 @@ public class Principal {
                 agentList.add(ac);
             }
         }
+        
+        try {
+            AgentController nonDedaleAgent =
+                    containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
+                            "BDI1", TestBDIAgent.class.getName(), new Object[] {});
+            agentList.add(nonDedaleAgent);
+        } catch (StaleProxyException e) {
+            e.printStackTrace();
+        }
+
 
         // All agents created
         System.out.println("Agents created...");
