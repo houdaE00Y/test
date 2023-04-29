@@ -208,7 +208,7 @@ public class Principal {
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgentB.class),*/
         		newAgent("Onto1", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),
-                /*newDummyMovingAgent("ImHere"),
+                newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
                 newExploreCoopAgent("1stAgent", new String[]{"2ndAgent"}),
@@ -217,7 +217,7 @@ public class Principal {
                 newExploreSoloAgent("Explo2"),
                 newDummyMovingAgent("Explo3"),
                 newCollectorAgent("Collect1"),
-                newTankerAgent("Tanker1")*/
+                newTankerAgent("Tanker1")
         };
 
         for(AgentController ac: agentsToAdd) {

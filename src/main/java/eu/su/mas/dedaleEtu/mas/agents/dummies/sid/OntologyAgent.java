@@ -31,11 +31,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 public class OntologyAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = 1L;
-	private Model model;
+	//private MapaModel model;
 	protected void setup() {
 		super.setup();
-
-		model = loadOntology();
 		
 		System.out.println("Ontology AID is: " + getAID().getName());
 		Object[] args = getArguments();
@@ -50,7 +48,6 @@ public class OntologyAgent extends AbstractDedaleAgent {
         		new OneShotBehaviour(this) {
 					@Override
 					public void action() {
-						
 						List<String> agentNames = new ArrayList <String>();
 
 						// Build the description used as template for the search
@@ -78,11 +75,11 @@ public class OntologyAgent extends AbstractDedaleAgent {
 						
 						
 						MapRepresentation map = new MapRepresentation();
-						MapaModel mapaModel = new MapaModel(model);
-						mapaModel.addAgent(getLocalName(), AgentType.Explorer);
-						myAgent.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, mapaModel, agentNames));
-						myAgent.addBehaviour(new MyExploOntologyBehaviour((AbstractDedaleAgent) myAgent, map, mapaModel));
-						myAgent.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, mapaModel, agentNames));
+						MapaModel model = new MapaModel(loadOntology());
+						model.addAgent(getLocalName(), AgentType.Explorer);
+						myAgent.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
+						myAgent.addBehaviour(new MyExploOntologyBehaviour((AbstractDedaleAgent) myAgent, map, model));
+						myAgent.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
 					}
 				}
         );

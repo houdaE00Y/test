@@ -1,230 +1,265 @@
 <?xml version="1.0"?>
-<Ontology xmlns="http://www.w3.org/2002/07/owl#"
+<rdf:RDF xmlns="http://mapa"
      xml:base="http://mapa"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-     ontologyIRI="http://mapa">
-    <Prefix name="" IRI="http://mapa"/>
-    <Prefix name="owl" IRI="http://www.w3.org/2002/07/owl#"/>
-    <Prefix name="rdf" IRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
-    <Prefix name="xml" IRI="http://www.w3.org/XML/1998/namespace"/>
-    <Prefix name="xsd" IRI="http://www.w3.org/2001/XMLSchema#"/>
-    <Prefix name="rdfs" IRI="http://www.w3.org/2000/01/rdf-schema#"/>
-    <Declaration>
-        <Class IRI="#Agent"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#CanDischarge"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Cell"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Closed"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Diamond"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Distance1ToAgentStorage"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Explorer"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Gold"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Open"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Recollector"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Resource"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Storage"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Well"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="#Windy"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="#Adjacent"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="#CarriedBy"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="#LocatedAt"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="#Id"/>
-    </Declaration>
-    <EquivalentClasses>
-        <Class IRI="#CanDischarge"/>
-        <ObjectSomeValuesFrom>
-            <ObjectProperty IRI="#LocatedAt"/>
-            <Class IRI="#Distance1ToAgentStorage"/>
-        </ObjectSomeValuesFrom>
-    </EquivalentClasses>
-    <EquivalentClasses>
-        <Class IRI="#Distance1ToAgentStorage"/>
-        <ObjectSomeValuesFrom>
-            <ObjectProperty IRI="#Adjacent"/>
-            <ObjectIntersectionOf>
-                <Class IRI="#Cell"/>
-                <ObjectSomeValuesFrom>
-                    <ObjectInverseOf>
-                        <ObjectProperty IRI="#LocatedAt"/>
-                    </ObjectInverseOf>
-                    <Class IRI="#Storage"/>
-                </ObjectSomeValuesFrom>
-            </ObjectIntersectionOf>
-        </ObjectSomeValuesFrom>
-    </EquivalentClasses>
-    <SubClassOf>
-        <Class IRI="#CanDischarge"/>
-        <Class IRI="#Recollector"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Closed"/>
-        <Class IRI="#Cell"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Diamond"/>
-        <Class IRI="#Resource"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Distance1ToAgentStorage"/>
-        <Class IRI="#Cell"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Explorer"/>
-        <Class IRI="#Agent"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Gold"/>
-        <Class IRI="#Resource"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Open"/>
-        <Class IRI="#Cell"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Recollector"/>
-        <Class IRI="#Agent"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Storage"/>
-        <Class IRI="#Agent"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Well"/>
-        <Class IRI="#Cell"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="#Windy"/>
-        <Class IRI="#Cell"/>
-    </SubClassOf>
-    <DisjointClasses>
-        <Class IRI="#Agent"/>
-        <Class IRI="#Cell"/>
-        <Class IRI="#Resource"/>
-    </DisjointClasses>
-    <DisjointClasses>
-        <Class IRI="#Closed"/>
-        <Class IRI="#Open"/>
-    </DisjointClasses>
-    <DisjointClasses>
-        <Class IRI="#Diamond"/>
-        <Class IRI="#Gold"/>
-    </DisjointClasses>
-    <DisjointClasses>
-        <Class IRI="#Explorer"/>
-        <Class IRI="#Recollector"/>
-        <Class IRI="#Storage"/>
-    </DisjointClasses>
-    <ClassAssertion>
-        <DataSomeValuesFrom>
-            <DataProperty IRI="#Id"/>
-            <Datatype abbreviatedIRI="xsd:string"/>
-        </DataSomeValuesFrom>
-        <AnonymousIndividual nodeID="_:genid-5abad63c-67ae-46f6-93c3-c49a15ffd349"/>
-    </ClassAssertion>
-    <DataPropertyAssertion>
-        <DataProperty IRI="#Id"/>
-        <AnonymousIndividual nodeID="_:genid-010ad5b7-644d-476a-b884-90112e706fe6"/>
-        <Literal></Literal>
-    </DataPropertyAssertion>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="#CarriedBy"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="#LocatedAt"/>
-    </FunctionalObjectProperty>
-    <SymmetricObjectProperty>
-        <ObjectProperty IRI="#Adjacent"/>
-    </SymmetricObjectProperty>
-    <IrreflexiveObjectProperty>
-        <ObjectProperty IRI="#Adjacent"/>
-    </IrreflexiveObjectProperty>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="#Adjacent"/>
-        <Class IRI="#Cell"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="#CarriedBy"/>
-        <Class IRI="#Resource"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="#LocatedAt"/>
-        <Class IRI="#Agent"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="#LocatedAt"/>
-        <Class IRI="#Resource"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="#Adjacent"/>
-        <Class IRI="#Cell"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="#CarriedBy"/>
-        <Class IRI="#Agent"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="#LocatedAt"/>
-        <Class IRI="#Cell"/>
-    </ObjectPropertyRange>
-    <SubDataPropertyOf>
-        <DataProperty IRI="#Id"/>
-        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
-    </SubDataPropertyOf>
-    <DataPropertyDomain>
-        <DataProperty IRI="#Id"/>
-        <Class IRI="#Agent"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="#Id"/>
-        <Class IRI="#Cell"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="#Id"/>
-        <Class IRI="#Resource"/>
-    </DataPropertyDomain>
-    <DataPropertyRange>
-        <DataProperty IRI="#Id"/>
-        <Datatype abbreviatedIRI="xsd:string"/>
-    </DataPropertyRange>
-</Ontology>
+     xmlns:mapa="http://mapa#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://mapa"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://mapa#Adjacent -->
+
+    <owl:ObjectProperty rdf:about="http://mapa#Adjacent">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#IrreflexiveProperty"/>
+        <rdfs:domain rdf:resource="http://mapa#Cell"/>
+        <rdfs:range rdf:resource="http://mapa#Cell"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://mapa#CarriedBy -->
+
+    <owl:ObjectProperty rdf:about="http://mapa#CarriedBy">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://mapa#Resource"/>
+        <rdfs:range rdf:resource="http://mapa#Agent"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://mapa#LocatedAt -->
+
+    <owl:ObjectProperty rdf:about="http://mapa#LocatedAt">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://mapa#Agent"/>
+        <rdfs:domain rdf:resource="http://mapa#Resource"/>
+        <rdfs:range rdf:resource="http://mapa#Cell"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://mapa#Id -->
+
+    <owl:DatatypeProperty rdf:about="http://mapa#Id">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://mapa#Agent"/>
+        <rdfs:domain rdf:resource="http://mapa#Cell"/>
+        <rdfs:domain rdf:resource="http://mapa#Resource"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://mapa#Agent -->
+
+    <owl:Class rdf:about="http://mapa#Agent"/>
+    
+
+
+    <!-- http://mapa#CanDischarge -->
+
+    <owl:Class rdf:about="http://mapa#CanDischarge">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://mapa#LocatedAt"/>
+                <owl:someValuesFrom rdf:resource="http://mapa#Distance1ToAgentStorage"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://mapa#Recollector"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Cell -->
+
+    <owl:Class rdf:about="http://mapa#Cell"/>
+    
+
+
+    <!-- http://mapa#Closed -->
+
+    <owl:Class rdf:about="http://mapa#Closed">
+        <rdfs:subClassOf rdf:resource="http://mapa#Cell"/>
+        <owl:disjointWith rdf:resource="http://mapa#Open"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Diamond -->
+
+    <owl:Class rdf:about="http://mapa#Diamond">
+        <rdfs:subClassOf rdf:resource="http://mapa#Resource"/>
+        <owl:disjointWith rdf:resource="http://mapa#Gold"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Distance1ToAgentStorage -->
+
+    <owl:Class rdf:about="http://mapa#Distance1ToAgentStorage">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://mapa#Adjacent"/>
+                <owl:someValuesFrom>
+                    <owl:Class>
+                        <owl:intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="http://mapa#Cell"/>
+                            <owl:Restriction>
+                                <owl:onProperty>
+                                    <rdf:Description>
+                                        <owl:inverseOf rdf:resource="http://mapa#LocatedAt"/>
+                                    </rdf:Description>
+                                </owl:onProperty>
+                                <owl:someValuesFrom rdf:resource="http://mapa#Storage"/>
+                            </owl:Restriction>
+                        </owl:intersectionOf>
+                    </owl:Class>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://mapa#Cell"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Explorer -->
+
+    <owl:Class rdf:about="http://mapa#Explorer">
+        <rdfs:subClassOf rdf:resource="http://mapa#Agent"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Gold -->
+
+    <owl:Class rdf:about="http://mapa#Gold">
+        <rdfs:subClassOf rdf:resource="http://mapa#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Open -->
+
+    <owl:Class rdf:about="http://mapa#Open">
+        <rdfs:subClassOf rdf:resource="http://mapa#Cell"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Recollector -->
+
+    <owl:Class rdf:about="http://mapa#Recollector">
+        <rdfs:subClassOf rdf:resource="http://mapa#Agent"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Resource -->
+
+    <owl:Class rdf:about="http://mapa#Resource"/>
+    
+
+
+    <!-- http://mapa#Storage -->
+
+    <owl:Class rdf:about="http://mapa#Storage">
+        <rdfs:subClassOf rdf:resource="http://mapa#Agent"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Well -->
+
+    <owl:Class rdf:about="http://mapa#Well">
+        <rdfs:subClassOf rdf:resource="http://mapa#Cell"/>
+    </owl:Class>
+    
+
+
+    <!-- http://mapa#Windy -->
+
+    <owl:Class rdf:about="http://mapa#Windy">
+        <rdfs:subClassOf rdf:resource="http://mapa#Cell"/>
+    </owl:Class>
+    <rdf:Description>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://mapa#Id"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdf:type>
+    </rdf:Description>
+    <rdf:Description>
+        <mapa:Id></mapa:Id>
+    </rdf:Description>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://mapa#Agent"/>
+            <rdf:Description rdf:about="http://mapa#Cell"/>
+            <rdf:Description rdf:about="http://mapa#Resource"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://mapa#Explorer"/>
+            <rdf:Description rdf:about="http://mapa#Recollector"/>
+            <rdf:Description rdf:about="http://mapa#Storage"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
 
 
 
-<!-- Generated by the OWL API (version 4.5.25.2023-02-15T19:15:49Z) https://github.com/owlcs/owlapi -->
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
 

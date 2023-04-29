@@ -1,7 +1,13 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -36,6 +42,9 @@ public class MapaModel {
 	public MapaModel(Model model) {
 		this.model = model;
 	}
+	
+	static Pattern patternIdCell = Pattern.compile("^http://mapa#Instance_(.+?)_cell$");
+
 	
 	private String mapa(String hastag) {
 		return "http://mapa#" + hastag;
@@ -133,12 +142,24 @@ public class MapaModel {
 		);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
         ResultSet result = qe.execSelect();
+        ArrayList<String> returnedList = new ArrayList<String>();
         while (result.hasNext()) {
         	QuerySolution entry = result.next();
-        	entry.get("Position");
-        	System.out.println(entry.get("Position"));
+        	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
+        	if (matcher.find()) returnedList.add(matcher.group(1));
         }
         qe.close();
-		return new ArrayList<>();
+		return returnedList;
+	}
+	
+	public String getOntology() {
+		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		model.write(bytes,"N-TRIPLE");
+		return bytes.toString(StandardCharsets.UTF_8);
+	}
+	
+	public void importOntology(String onto) {
+		InputStream stream = new ByteArrayInputStream(onto.getBytes(StandardCharsets.UTF_8));
+		model.read(stream,null,"N-TRIPLE");
 	}
 }
