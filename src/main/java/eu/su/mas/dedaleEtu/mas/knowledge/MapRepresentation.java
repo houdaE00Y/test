@@ -48,6 +48,8 @@ public class MapRepresentation implements Serializable {
     private Integer nbEdges;//used to generate the edges ids
     private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
 
+    private Random rand = new Random();
+    
     public MapRepresentation() {
         //System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         System.setProperty("org.graphstream.ui", "javafx");
@@ -170,6 +172,19 @@ public class MapRepresentation implements Serializable {
         }
         return shortestPath;
     }
+    
+    public String getRandomNode(String currPos) {
+        List<String> shortestPath = new ArrayList<>();
+        
+        List<String> cand = g.getNode(currPos).edges().map(edge -> (edge.getTargetNode().getId().equals(currPos) ? edge.getSourceNode().getId() : edge.getTargetNode().getId())).filter(
+        		node -> !g.getNode(node).getAttribute("ui.class").equals(MapAttribute.agent.toString())).collect(Collectors.toUnmodifiableList());
+        
+        
+        if (cand.isEmpty()) {
+        	return null;
+        }
+        return cand.get(rand.nextInt(cand.size()));
+    }
 
     public List<String> getShortestPathToClosestOpenNode(String myPosition) {
         //1) Get all openNodes
@@ -194,23 +209,29 @@ public class MapRepresentation implements Serializable {
         		if (adjacentNode == null) {
         			continue;
         		}
-        		if (!visited.contains(adjacentNode)) {
-	        		if (opennodes.contains(adjacentNode)) {
-	        			
-	        			ArrayList<String> path = new ArrayList<String>();
-	        			path.add(adjacentNode);
-	        			String currentBacktrack = currNodeInfo.getRight();
-	        			while (!currentBacktrack.equals(myPosition)) {
-	        				path.add(currentBacktrack);
-	        				currentBacktrack = parent.get(currentBacktrack);
-		        		}
-	        			Collections.reverse(path);
-	        			return path;
-	        		}
-        			visited.add(adjacentNode);
-        			nextToCheck.add(new Couple<Integer, String>(currNodeInfo.getLeft()+1, adjacentNode));
-        			parent.put(adjacentNode, currNodeInfo.getRight());
+        		
+        		if (visited.contains(adjacentNode)) {
+        			continue;
         		}
+        		
+        		if (g.getNode(adjacentNode).getAttribute("ui.class").equals(MapAttribute.agent.toString())) {
+        			continue;
+        		}
+        		
+        		if (opennodes.contains(adjacentNode)) {
+        			ArrayList<String> path = new ArrayList<String>();
+        			path.add(adjacentNode);
+        			String currentBacktrack = currNodeInfo.getRight();
+        			while (!currentBacktrack.equals(myPosition)) {
+        				path.add(currentBacktrack);
+        				currentBacktrack = parent.get(currentBacktrack);
+	        		}
+        			Collections.reverse(path);
+        			return path;
+        		}
+    			visited.add(adjacentNode);
+    			nextToCheck.add(new Couple<Integer, String>(currNodeInfo.getLeft()+1, adjacentNode));
+    			parent.put(adjacentNode, currNodeInfo.getRight());
         	}
         }
         return null;

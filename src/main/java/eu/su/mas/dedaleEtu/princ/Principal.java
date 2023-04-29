@@ -200,13 +200,15 @@ public class Principal {
         // The platform will not work unless all agents defined in the entities file are bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
-                newAgent("Lab", new String[] {},
+                /*newAgent("Lab", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent.class),
                 newAgent("A", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgentA.class),
                 newAgent("B", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgentB.class),
-                newDummyMovingAgent("ImHere"),
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgentB.class),*/
+        		newAgent("Onto1", new String[] {},
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),
+                /*newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
                 newExploreCoopAgent("1stAgent", new String[]{"2ndAgent"}),
@@ -215,7 +217,7 @@ public class Principal {
                 newExploreSoloAgent("Explo2"),
                 newDummyMovingAgent("Explo3"),
                 newCollectorAgent("Collect1"),
-                newTankerAgent("Tanker1")
+                newTankerAgent("Tanker1")*/
         };
 
         for(AgentController ac: agentsToAdd) {
