@@ -126,10 +126,10 @@ public class OntologyAgent extends AbstractDedaleAgent {
 		super.afterMove();
 	}
 	
-    private Model loadOntology() {
+    public static Model loadOntology() {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
         OntDocumentManager dm = model.getDocumentManager();
-        URL fileAsResource = getClass().getClassLoader().getResource("mapa.owl");
+        URL fileAsResource = OntologyAgent.class.getClassLoader().getResource("mapa.owl");
         System.out.println(fileAsResource);
         dm.addAltEntry("mapa", fileAsResource.toString());
         model.read("mapa");

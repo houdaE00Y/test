@@ -5,7 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +26,7 @@ import org.apache.jena.sparql.engine.iterator.QueryIteratorResultSet;
 
 public class MapaModel {
 	Model model;
+
 	public enum NodeType {
 		Open,
 		Closed
@@ -44,7 +48,8 @@ public class MapaModel {
 	}
 	
 	static Pattern patternIdCell = Pattern.compile("^http://mapa#Instance_(.+?)_cell$");
-
+	static Pattern patternIdRecource = Pattern.compile("^http://mapa#Instance_(.+?)_recource$");
+	static Pattern patternIdAgent = Pattern.compile("^http://mapa#Instance_(.+?)_agent$");
 	
 	private String mapa(String hastag) {
 		return "http://mapa#" + hastag;
@@ -131,25 +136,59 @@ public class MapaModel {
 		model.add(new StatementImpl(getAgent(agentName), model.getProperty(mapa("LocatedAt")), getCell(id)));
 	}
 	
-	public List<String> getAgentPositions() {
+	public Map<String, String> getAgentPositions() {
 		Query query = QueryFactory.create
 		(
 			"PREFIX mapa: <http://mapa#> " +
-            "SELECT ?Position where {" +
+            "SELECT ?Agent ?Position where {" +
             " ?Agent a mapa:Agent ;" +
             "  mapa:LocatedAt ?Position ." +
             "}"
 		);
-        QueryExecution qe = QueryExecutionFactory.create(query, model);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
         ResultSet result = qe.execSelect();
-        ArrayList<String> returnedList = new ArrayList<String>();
+        HashMap<String, String> returnedList = new HashMap<String, String>();
         while (result.hasNext()) {
         	QuerySolution entry = result.next();
-        	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-        	if (matcher.find()) returnedList.add(matcher.group(1));
+        	Matcher matcher1 = patternIdAgent.matcher(entry.get("Agent").toString());
+        	Matcher matcher2 = patternIdCell.matcher(entry.get("Position").toString());
+        	if (matcher1.find() && matcher2.find()) returnedList.put(matcher1.group(1), matcher2.group(1));
         }
         qe.close();
 		return returnedList;
+	}
+	
+	public void removeAllAgentPositionsInSet(Set<String> agentNames) {
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Agent ?Position where {" +
+            " ?Agent a mapa:Agent ;" +
+            "  mapa:LocatedAt ?Position ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        while (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	
+        	String position = null;
+        	String agent = null;
+        	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
+        	if (matcher.find()) position = matcher.group(1);
+        	matcher = patternIdAgent.matcher(entry.get("Agent").toString());
+        	if (matcher.find()) agent = matcher.group(1);
+        	if (agent == null || position == null || !agentNames.contains(agent))
+        		continue;
+        	model.remove(new StatementImpl(getAgent(agent), model.getProperty(mapa("LocatedAt")), getCell(position)));
+        }
+        qe.close();
+	}
+	
+	public void absorb(MapaModel other) {
+		model.add(other.model);
 	}
 	
 	public String getOntology() {

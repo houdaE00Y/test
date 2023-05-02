@@ -32,11 +32,7 @@ public class SendOntologiesBehaviour extends SimpleBehaviour {
         for (String agentName : agents) {
             msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
         }
-        try {
-            msg.setContentObject(model.getOntology());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        msg.setContent(model.getOntology());
         ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
 	}
 
