@@ -2,7 +2,6 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
-import eu.su.mas.dedaleEtu.mas.behaviours.ExploCoopBehaviour;
 import jade.core.behaviours.Behaviour;
 
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
         List<Behaviour> lb = new ArrayList<>();
 
         // ADD the behaviours of the Dummy Moving Agent
-        lb.add(new ExploCoopBehaviour(this, null, list_agentNames));
+        //lb.add(new ExploCoopBehaviour(this, null, list_agentNames));
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
         addBehaviour(new startMyBehaviours(this, lb));

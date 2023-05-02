@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.jena.rdf.model.Model;
 
@@ -19,7 +20,8 @@ public class MyExploOntologyBehaviour extends SimpleBehaviour {
     private MapRepresentation myMap;
     private MapaModel model;
 	private static final long serialVersionUID = 1L;
-	
+
+	private boolean allExplored = false;
 	private boolean isDone = false;
 	
 	public MyExploOntologyBehaviour(final AbstractDedaleAgent myAgent, MapRepresentation myMap, MapaModel model) {
@@ -55,12 +57,12 @@ public class MyExploOntologyBehaviour extends SimpleBehaviour {
         String nextNode = null;
         for (Couple<Location, List<Couple<Observation, Integer>>> lob : lobs) {
         	if (!lob.getRight().isEmpty()) {
-        		System.out.println("A Found: " + lob.getRight().toString());
+        		System.out.println(getAgent().getLocalName() + " Found: " + lob.getRight().toString());
         	}
             String nodeId = lob.getLeft().getLocationId();
-            boolean isNewNode = this.myMap.addNewNode(nodeId);
+            this.myMap.addNewNode(nodeId);
             model.addNode(nodeId, NodeType.Open);
-            
+            model.addAdjancency(nodeId, myPosition);
             boolean isWindNode=false;
             // Check wind
             for (Couple<Observation,Integer> c : lob.getRight()) 	
@@ -95,18 +97,30 @@ public class MyExploOntologyBehaviour extends SimpleBehaviour {
         	//System.out.println(this.myAgent.getLocalName() + " - Exploration successfully done.");
         	//Explo finished
         	//this.stop();
-            nextNode = this.myMap.getRandomNode(myPosition);            
+        	if (allExplored == false) {
+        		allExplored = true;
+            	System.out.println("AGENT " + this.getAgent().getLocalName() + " IS DONE. IT KNOWS:");
+        		System.out.println(model.getOntology());
+        		System.out.println("");
+        		System.out.println("AGENT " + this.getAgent().getLocalName() + " KNOWLEDGE END");
+        	}
+            nextNode = this.myMap.getRandomNode(myPosition, model);         
         } else {
             //no directly accessible openNode
             //chose one, compute the path and take the first step.
-        	List<String> path = this.myMap.getShortestPathToClosestOpenNode(myPosition);
+        	List<String> path = this.myMap.getShortestPathToClosestOpenNode(myPosition, model);
         	if (path != null && !path.isEmpty()) {
-                nextNode = path.get(0);        		
+                nextNode = path.get(0);
         	} else {
-        		nextNode = this.myMap.getRandomNode(myPosition);
+        		nextNode = this.myMap.getRandomNode(myPosition, model);
         	}
         }
         if (nextNode != null) {
+        	/*System.out.println(getAgent().getLocalName() + " beliefs that:");
+        	for (Entry<String, String> ag :  model.getAgentPositions().entrySet()) {
+            	System.out.println(ag.getKey() + " is at " + ag.getValue());
+        	}
+        	System.out.println(getAgent().getLocalName() + " goes " + nextNode);*/
         	((AbstractDedaleAgent) this.myAgent).moveTo(new gsLocation(nextNode));
         }
     }

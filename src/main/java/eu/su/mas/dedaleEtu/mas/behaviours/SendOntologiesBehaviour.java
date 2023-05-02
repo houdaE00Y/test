@@ -2,6 +2,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.jena.rdf.model.Model;
 
@@ -15,11 +16,11 @@ import jade.lang.acl.ACLMessage;
 
 public class SendOntologiesBehaviour extends SimpleBehaviour {
 
-	List<String> agents;
+	Set<String> agents;
 	MapRepresentation myMap;
 	MapaModel model;
 	
-	public SendOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, List<String> agents) {
+	public SendOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, Set<String> agents) {
 		this.agents = agents;
 		this.model = model;
 	}

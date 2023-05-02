@@ -1,30 +1,23 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.rdf.model.Model;
-
-import com.github.andrewoma.dexx.collection.HashSet;
-
-import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.acl.UnreadableException;
 
 public class ReceiveOntologiesBehaviour extends SimpleBehaviour {
 
-	List<String> agents;
+	Set<String> agents;
 	MapaModel model;
 	
-	public ReceiveOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, List<String> agents) {
+	public ReceiveOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, Set<String> agents) {
 		this.agents = agents;
 		this.model = model;
+		System.out.println("AGENTS SEND::: " + agents);
 	}
 	
 	void filter(MapaModel otherModel, String receiver) {
@@ -40,17 +33,20 @@ public class ReceiveOntologiesBehaviour extends SimpleBehaviour {
 	
 	@Override
 	public void action() {
-		MessageTemplate msgTemplate = MessageTemplate.and(
-                MessageTemplate.MatchProtocol("SHARE-ONTO"),
-                MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-        ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
-        if (msgReceived != null) {
-        	MapaModel otherModel = new MapaModel(OntologyAgent.loadOntology());
-        	otherModel.importOntology(msgReceived.getContent());
-            filter(otherModel, msgReceived.getSender().getLocalName());
-            this.model.absorb(otherModel);
+		MessageTemplate msgTemplate = MessageTemplate.MatchProtocol("SHARE-ONTO");
+        while (true) {
+			ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
+	        if (msgReceived != null) {
+	        	MapaModel otherModel = MapaModel.importOntology(msgReceived.getContent());
+	            filter(otherModel, msgReceived.getSender().getLocalName());
+	            Map<String, String> agents = otherModel.getAgentPositions();
+	            for (Map.Entry<String, String> entry : agents.entrySet()) {
+	            	model.addAgent(entry.getKey(), model.getAgentType(entry.getKey()));
+	            	model.addAgentPos(entry.getKey(), entry.getValue());
+	            	//System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+	        	}
+            } else break;
         }
-
 	}
 
 	@Override

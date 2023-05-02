@@ -42,5 +42,60 @@
     "detectionRadius": 0,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Onto2",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Onto3",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Onto4",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Onto5",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Onto6",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
   }
 ]

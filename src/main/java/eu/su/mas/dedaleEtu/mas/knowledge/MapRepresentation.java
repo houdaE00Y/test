@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.knowledge;
 import dataStructures.serializableGraph.SerializableNode;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel;
 import javafx.application.Platform;
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.*;
@@ -173,23 +174,26 @@ public class MapRepresentation implements Serializable {
         return shortestPath;
     }
     
-    public String getRandomNode(String currPos) {
-        List<String> shortestPath = new ArrayList<>();
+    public String getRandomNode(String currPos, MapaModel model) {        
+        Collection<String> agentPositions = model.getAgentPositions().values();
         
-        List<String> cand = g.getNode(currPos).edges().map(edge -> (edge.getTargetNode().getId().equals(currPos) ? edge.getSourceNode().getId() : edge.getTargetNode().getId())).filter(
-        		node -> !g.getNode(node).getAttribute("ui.class").equals(MapAttribute.agent.toString())).collect(Collectors.toUnmodifiableList());
-        
-        
+        List<String> adjacentNodes = g.getNode(currPos).edges().map(edge -> (edge.getTargetNode().getId().equals(currPos) ? edge.getSourceNode().getId() : edge.getTargetNode().getId()))
+        		.collect(Collectors.toUnmodifiableList());
+        List<String> cand = adjacentNodes.stream().filter(node -> !agentPositions.contains(node))
+        		.collect(Collectors.toUnmodifiableList());
+                
         if (cand.isEmpty()) {
-        	return null;
+            return adjacentNodes.get(rand.nextInt(adjacentNodes.size()));
         }
         return cand.get(rand.nextInt(cand.size()));
     }
 
-    public List<String> getShortestPathToClosestOpenNode(String myPosition) {
+    public List<String> getShortestPathToClosestOpenNode(String myPosition, MapaModel model) {
         //1) Get all openNodes
         Set<String> opennodes = getOpenNodes().stream().collect(Collectors.toUnmodifiableSet());
 
+        Collection<String> agentPositions = model.getAgentPositions().values();
+        
         HashSet<String> visited = new HashSet<String>();
         HashMap<String, String> parent = new HashMap<String, String>();
         PriorityQueue<Couple<Integer, String>> nextToCheck = new PriorityQueue<Couple<Integer,String>>(g.getNodeCount(), new Comparator<Couple<Integer,String>>() {
@@ -214,7 +218,7 @@ public class MapRepresentation implements Serializable {
         			continue;
         		}
         		
-        		if (g.getNode(adjacentNode).getAttribute("ui.class").equals(MapAttribute.agent.toString())) {
+        		if (agentPositions.contains(adjacentNode)) {
         			continue;
         		}
         		
