@@ -28,9 +28,14 @@ public class ReceiveOntologiesBehaviour extends SimpleBehaviour {
 	}
 	
 	void filter(MapaModel otherModel, String receiver) {
+		Set<String> closedNodes = model.getClosedNodes();
+		
 		Set<String> agents = model.getAgentPositions().keySet();
 		agents.remove(receiver);
 		otherModel.removeAllAgentPositionsInSet(agents);
+		otherModel.removeClosedNodes(closedNodes);
+		
+		
 	}
 	
 	@Override
@@ -40,10 +45,10 @@ public class ReceiveOntologiesBehaviour extends SimpleBehaviour {
                 MessageTemplate.MatchPerformative(ACLMessage.INFORM));
         ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
         if (msgReceived != null) {
-        	MapaModel model = new MapaModel(OntologyAgent.loadOntology());
-            model.importOntology(msgReceived.getContent());
-            filter(model, msgReceived.getSender().getLocalName());
-            this.model.absorb(model);
+        	MapaModel otherModel = new MapaModel(OntologyAgent.loadOntology());
+        	otherModel.importOntology(msgReceived.getContent());
+            filter(otherModel, msgReceived.getSender().getLocalName());
+            this.model.absorb(otherModel);
         }
 
 	}

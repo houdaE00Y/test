@@ -40,6 +40,7 @@ public class OntologyAgent extends AbstractDedaleAgent {
 		if (args != null)
 			for (int i = 0 ; i<args.length; ++i)
 				System.out.println("- " + args[i]);
+			
 		
 		// use them as parameters for your behaviours is you want
 		List<Behaviour> lb = new ArrayList<>();

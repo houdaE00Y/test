@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -200,5 +201,53 @@ public class MapaModel {
 	public void importOntology(String onto) {
 		InputStream stream = new ByteArrayInputStream(onto.getBytes(StandardCharsets.UTF_8));
 		model.read(stream,null,"N-TRIPLE");
+	}
+
+	public Set<String> getClosedNodes() {
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Node where {" +
+            " ?Node a mapa:Closed ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        Set<String> returnedList = new HashSet<String>();
+        while (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+        	if (matcher.find()) returnedList.add(matcher.group(1));
+        }
+        qe.close();
+		return returnedList;
+	}
+
+	public void removeClosedNodes(Set<String> closedNodes) {
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Node where {" +
+            " ?Node a mapa:Open ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        while (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	
+        	String position = null;
+        	Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+        	if (matcher.find()) position = matcher.group(1);
+        	if (position == null || !closedNodes.contains(position))
+        		continue;
+	        model.remove(new StatementImpl(
+	        		getCell(position),
+	                model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+	                model.getResource(mapa("Open"))));
+        }
+        qe.close();
 	}
 }
