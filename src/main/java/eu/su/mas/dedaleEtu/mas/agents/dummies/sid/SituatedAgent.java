@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.jena.ontology.OntDocumentManager;
@@ -31,11 +32,13 @@ import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
 
 public class SituatedAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = 1L;
 	public String myBDIAgent;
 	public String resultOrder;
+	public ACLMessage messageBDI = null;
 	//private MapaModel model;
 	protected void setup() {
 		super.setup();
@@ -124,7 +127,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
 						MapaModel model = new MapaModel(loadOntology());
 						model.addAgent(getLocalName(), agentType);
 						OrderCheckingBehaviour order = new OrderCheckingBehaviour((AbstractDedaleAgent) myAgent);
-						order.addBehaviour(new ReceiveBDIOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, myBDIAgent));
+						order.addBehaviour(new ReceiveBDIOntologiesBehaviour((AbstractDedaleAgent) myAgent, map, model, myBDIAgent));
 						order.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
 						order.addBehaviour(new MyExploOntologyBehaviour((AbstractDedaleAgent) myAgent, map, model));
 						order.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
