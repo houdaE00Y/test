@@ -12,6 +12,8 @@ import bdi4jade.plan.DefaultPlan;
 import bdi4jade.plan.Plan;
 import bdi4jade.reasoning.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent;
+import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.lang.acl.MessageTemplate;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
@@ -21,12 +23,22 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
 public class BDIAgentPolidama extends SingleCapabilityAgent {
+
+	MapRepresentation map = new MapRepresentation();
+	MapaModel model = new MapaModel(loadOntology());
+	//List<ACLMessage> msgsReceived = new List<ACLMessage>();
+
+	Set<String> agentNames = new HashSet<String>();
+	
     public BDIAgentPolidama() {
+
+		
         // Create initial beliefs
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
         Belief ontology = new TransientBelief(ONTOLOGY, loadOntology());
@@ -150,5 +162,9 @@ public class BDIAgentPolidama extends SingleCapabilityAgent {
         dm.addAltEntry("mapa", fileAsResource.toString());
         model.read("mapa", null, "RDF/XML");
         return model;
+    }
+
+    public void AddSituated(String agent) {
+    	agentNames.add(agent);
     }
 }

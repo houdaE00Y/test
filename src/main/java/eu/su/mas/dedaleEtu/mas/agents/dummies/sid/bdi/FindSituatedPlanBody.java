@@ -20,7 +20,7 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
     protected void execute() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription templateSd = new ServiceDescription();
-        templateSd.setType("dedale");
+        templateSd.setType("BDIagent");
         template.addServices(templateSd);
         DFAgentDescription[] results;
         try {
@@ -28,8 +28,13 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
             if (results.length > 0) {
                 DFAgentDescription dfd = results[0];
                 AID provider = dfd.getName();
-                System.out.println("Found situated! " + provider.getName());
-                updateOntology(provider.getLocalName());
+                if (provider.getName() == this.myAgent.getName())
+                    System.out.println("Found myself....! ");
+                else{
+                	System.out.println("Found situated! " + provider.getName());
+                    updateOntology(provider.getLocalName());
+                    //this.myAgent.AddSituated(provider.getLocalName().toString());
+                }
             }
             // if results.length == 0, no endState is set,
             // so the plan body will run again (if the goal still holds)
@@ -41,11 +46,12 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
 
     private void updateOntology(String situatedAgentName) {
         SingleCapabilityAgent agent = (SingleCapabilityAgent) this.myAgent;
+        //this agent udate agents list? lista de contactos...∫
         Belief b = agent.getCapability().getBeliefBase().getBelief(ONTOLOGY);
         Model model = (Model) b.getValue();
         model.add(new StatementImpl(
-                model.createResource("http://example#" + situatedAgentName),
+                model.createResource("http://mapa#" + situatedAgentName),
                 model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                model.getResource("http://example#Agent")));
+                model.getResource("http://mapa#Agent")));
     }
 }

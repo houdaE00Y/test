@@ -8,6 +8,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.I_AM_REGISTERED;
 
@@ -18,8 +19,11 @@ public class RegisterPlanBody extends BeliefGoalPlanBody {
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(agent.getAID());
         ServiceDescription sd = new ServiceDescription();
-        sd.setName("deliberative-agent");
-        sd.setType("bdi");
+        sd.setName("polydama-Ontology");
+        sd.setType("BDIagent");
+        sd.addOntologies("polydama-mapstate");
+        sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
+        dfd.addServices(sd);
         try {
             DFService.register(this.myAgent, dfd);
             getBeliefBase().updateBelief(I_AM_REGISTERED, true);
