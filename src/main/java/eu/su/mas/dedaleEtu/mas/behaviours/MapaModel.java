@@ -404,4 +404,27 @@ public class MapaModel {
 		}
 		return null;
 	}
+	
+	public String getAgentLocation(String agentId) {
+		{
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Position where {" +
+            "  mapa:Instance_" + agentId + "_agent mapa:LocatedAt ?Position ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        if (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
+        	if (matcher.find()) {
+        		return matcher.group(1);
+        	}
+        }
+		}
+		return null;
+	}
 }
