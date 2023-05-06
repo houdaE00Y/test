@@ -5,6 +5,7 @@ import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgentPolidama;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.TestBDIAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import jade.core.Profile;
@@ -206,7 +207,7 @@ public class Principal {
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgentA.class),
                 newAgent("B", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgentB.class),*/
-        		newAgent("Onto1", new String[] {},
+        		/*newAgent("Onto1", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),
         		newAgent("Onto2", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),
@@ -217,7 +218,9 @@ public class Principal {
         		newAgent("Onto5", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),
         		newAgent("Onto6", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent.class),*/
+        		newAgent("SituatedAgent", new String[] {},
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.SituatedAgent.class),
                 /*newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
@@ -241,7 +244,11 @@ public class Principal {
             AgentController nonDedaleAgent =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
                             "BDI1", TestBDIAgent.class.getName(), new Object[] {});
+            AgentController nonDedaleAgent2 =
+                    containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
+                            "BDIPolydama", BDIAgentPolidama.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
+            agentList.add(nonDedaleAgent2);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }

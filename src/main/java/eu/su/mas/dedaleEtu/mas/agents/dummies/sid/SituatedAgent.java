@@ -18,11 +18,13 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours
 import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel;
 import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel.AgentType;
 import eu.su.mas.dedaleEtu.mas.behaviours.MyExploOntologyBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.OrderCheckingBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ReceiveBDIOntologiesBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ReceiveOntologiesBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SendOntologiesBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
@@ -32,6 +34,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 public class SituatedAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = 1L;
+	public String myBDIAgent;
+	public String resultOrder;
 	//private MapaModel model;
 	protected void setup() {
 		super.setup();
@@ -60,18 +64,43 @@ public class SituatedAgent extends AbstractDedaleAgent {
 		List<Behaviour> lb = new ArrayList<>();
 
 		lb.add(
-        		new OneShotBehaviour(this) {
+        		new SimpleBehaviour(this) {
+        			boolean isDone;
+					@Override
+					public boolean done() {
+						// TODO Auto-generated method stub
+						return false;
+					}
+					
 					@Override
 					public void action() {
+						{
+				        	DFAgentDescription template = new DFAgentDescription();
+				        	ServiceDescription templateSd = new ServiceDescription();
+				        	templateSd.addOntologies("polydama-mapstate");
+				        	templateSd.setType("BDIAgent");
+				        	template.addServices(templateSd);
+				        	SearchConstraints sc = new SearchConstraints();
+				        	sc.setMaxResults(Long.valueOf(1000));
+				        	DFAgentDescription[] results;
+							try {
+								results = DFService.search(getAgent(), template, sc);
+					        	if (results.length > 0) {
+					        		DFAgentDescription dfd = results[0];
+					        		myBDIAgent = dfd.getName().getLocalName().toString();
+					        	} else return;
+							} catch (FIPAException e) {
+								e.printStackTrace();
+							}
+						}
+			        	
 						Set<String> agentNames = new HashSet<String>();
 
-						// Build the description used as template for the search
 			        	DFAgentDescription template = new DFAgentDescription();
 			        	ServiceDescription templateSd = new ServiceDescription();
 			        	templateSd.addOntologies("polydama-mapstate");
 			        	template.addServices(templateSd);
 			        	SearchConstraints sc = new SearchConstraints();
-			        	// We want to receive 10 results at most
 			        	sc.setMaxResults(Long.valueOf(1000));
 			        	
 			        	DFAgentDescription[] results;
@@ -88,14 +117,19 @@ public class SituatedAgent extends AbstractDedaleAgent {
 							e.printStackTrace();
 						}
 						agentNames.remove(getAgent().getLocalName());
-						
+						agentNames.remove(myBDIAgent);
+
 						
 						MapRepresentation map = new MapRepresentation();
 						MapaModel model = new MapaModel(loadOntology());
 						model.addAgent(getLocalName(), agentType);
-						myAgent.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
-						myAgent.addBehaviour(new MyExploOntologyBehaviour((AbstractDedaleAgent) myAgent, map, model));
-						myAgent.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
+						OrderCheckingBehaviour order = new OrderCheckingBehaviour((AbstractDedaleAgent) myAgent);
+						order.addBehaviour(new ReceiveBDIOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, myBDIAgent));
+						order.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
+						order.addBehaviour(new MyExploOntologyBehaviour((AbstractDedaleAgent) myAgent, map, model));
+						order.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
+						myAgent.addBehaviour(order);
+						isDone = true;
 					}
 				}
         );

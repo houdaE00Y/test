@@ -97,5 +97,16 @@
     "detectionRadius": 0,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "SituatedAgent",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
   }
 ]

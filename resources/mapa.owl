@@ -43,6 +43,15 @@
     
 
 
+    <!-- http://mapa#IntendsToWalkTo -->
+
+    <owl:ObjectProperty rdf:about="http://mapa#IntendsToWalkTo">
+        <rdfs:domain rdf:resource="http://mapa#Agent"/>
+        <rdfs:range rdf:resource="http://mapa#Cell"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://mapa#LocatedAt -->
 
     <owl:ObjectProperty rdf:about="http://mapa#LocatedAt">
