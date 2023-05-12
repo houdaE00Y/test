@@ -21,6 +21,7 @@ public class SendOntologiesBehaviour extends SimpleBehaviour {
 	MapaModel model;
 	
 	public SendOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, Set<String> agents) {
+		super(myAgent);
 		this.agents = agents;
 		this.model = model;
 	}

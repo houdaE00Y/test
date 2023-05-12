@@ -143,8 +143,8 @@ public class SituatedAgent extends AbstractDedaleAgent {
 		DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
         ServiceDescription sd = new ServiceDescription();
-        sd.setName("polydama-Ontology");
-        sd.setType("polydama-Ontology");
+        sd.setName("polydama-situated");
+        sd.setType("polydama-BDIagent-situated");
         sd.addOntologies("polydama-mapstate");
         sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
         dfd.addServices(sd);

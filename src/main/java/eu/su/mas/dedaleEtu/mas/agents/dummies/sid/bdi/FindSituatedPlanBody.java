@@ -20,22 +20,18 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
     protected void execute() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription templateSd = new ServiceDescription();
-        templateSd.setType("BDIagent");
+        templateSd.setType("polydama-BDIagent-situated");
+        templateSd.setName("polydama-situated");
         template.addServices(templateSd);
         DFAgentDescription[] results;
         try {
             results = DFService.search(this.myAgent, template);
-            if (results.length > 0) {
-                DFAgentDescription dfd = results[0];
-                AID provider = dfd.getName();
-                if (provider.getName() == this.myAgent.getName())
-                    System.out.println("Found myself....! ");
-                else{
-                	System.out.println("Found situated! " + provider.getName());
-                    updateOntology(provider.getLocalName());
-                    //this.myAgent.AddSituated(provider.getLocalName().toString());
+            if (results.length > 0)
+            	for (DFAgentDescription dfd : results) {
+	        		AID provider = dfd.getName();
+	                if (!provider.getLocalName().equals(this.myAgent.getLocalName()))
+	                    updateOntology(provider.getLocalName());
                 }
-            }
             // if results.length == 0, no endState is set,
             // so the plan body will run again (if the goal still holds)
         } catch (FIPAException e) {

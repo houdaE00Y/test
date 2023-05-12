@@ -20,6 +20,7 @@ public class ReceiveBDIOntologiesBehaviour extends SimpleBehaviour {
 	MapRepresentation map;
 	
 	public ReceiveBDIOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapRepresentation map, MapaModel model, String agent) {
+		super(myAgent);
 		this.agent = agent;
 		this.model = model;
 		this.map = map;
@@ -28,9 +29,9 @@ public class ReceiveBDIOntologiesBehaviour extends SimpleBehaviour {
 	
 	@Override
 	public void action() {
-		MessageTemplate msgTemplate = MessageTemplate.and(MessageTemplate.MatchProtocol("SHARE-ONTO"), MessageTemplate.MatchSender(new AID(agent, false)));
+		MessageTemplate msgTemplate = MessageTemplate.and(MessageTemplate.MatchProtocol("SHARE-ONTO"), MessageTemplate.MatchSender(new AID(agent, AID.ISLOCALNAME)));
         while (true) {
-			ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
+        ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
 	        if (msgReceived != null) {
 	        	SituatedAgent myAgent = ((SituatedAgent) getAgent());
 	        	myAgent.messageBDI = msgReceived;

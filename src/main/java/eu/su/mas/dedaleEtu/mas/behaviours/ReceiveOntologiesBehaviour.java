@@ -15,6 +15,7 @@ public class ReceiveOntologiesBehaviour extends SimpleBehaviour {
 	MapaModel model;
 	
 	public ReceiveOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, Set<String> agents) {
+		super(myAgent);
 		this.agents = agents;
 		this.model = model;
 		System.out.println("AGENTS SEND::: " + agents);
