@@ -30,11 +30,10 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
 public class BDIAgentPolidama extends SingleCapabilityAgent {
 
-	MapRepresentation map = new MapRepresentation();
-	MapaModel model = new MapaModel(loadOntology());
-	//List<ACLMessage> msgsReceived = new List<ACLMessage>();
-
-	Set<String> agentNames = new HashSet<String>();
+	private MapRepresentation map = new MapRepresentation();
+	private MapaModel model = new MapaModel(loadOntology());
+	private Set<String> agentNames = new HashSet<String>();
+	private Set<String> msgsReceived = new HashSet<String>();
 	
     public BDIAgentPolidama() {
 
@@ -46,12 +45,15 @@ public class BDIAgentPolidama extends SingleCapabilityAgent {
         // Add initial desires
         Goal registerGoal = new PredicateGoal(I_AM_REGISTERED, true);
         Goal findSituatedGoal = new SPARQLGoal(ONTOLOGY, QUERY_SITUATED_AGENT);
+        Goal requestMoveGoal = new SPARQLGoal(ONTOLOGY, QUERY_OPEN_NODE);
         addGoal(registerGoal);
         addGoal(findSituatedGoal);
+        addGoal(requestMoveGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
         GoalTemplate findSituatedTemplate = matchesGoal(findSituatedGoal);
+        GoalTemplate requestMoveTemplate = matchesGoal(requestMoveGoal);
 
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
@@ -60,6 +62,8 @@ public class BDIAgentPolidama extends SingleCapabilityAgent {
                 findSituatedTemplate, FindSituatedPlanBody.class);
         Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
                 KeepMailboxEmptyPlanBody.class);
+        Plan requestMovePlan = new DefaultPlan(
+                requestMoveTemplate, RequestMovePlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(registerPlan);
@@ -166,5 +170,9 @@ public class BDIAgentPolidama extends SingleCapabilityAgent {
 
     public void AddSituated(String agent) {
     	agentNames.add(agent);
+    }
+
+    public Set<String> GetSituated() {
+    	return agentNames;
     }
 }
