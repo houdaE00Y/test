@@ -13,7 +13,13 @@ import bdi4jade.plan.Plan;
 import bdi4jade.reasoning.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent;
 import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.goals.SPARQLGoal;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.planBody.FindSituatedPlanBody;
+import eu.su.mas.dedaleEtu.mas.planBody.KeepMailboxEmptyPlanBody;
+import eu.su.mas.dedaleEtu.mas.planBody.RegisterPlanBody;
+import eu.su.mas.dedaleEtu.mas.planBody.RequestMovePlanBody;
+import eu.su.mas.dedaleEtu.mas.planBody.StayInformedPlanBody;
 import jade.lang.acl.MessageTemplate;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
@@ -30,8 +36,7 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
 public class BDIAgentPolidama extends SingleCapabilityAgent {
 
-	private MapRepresentation map = new MapRepresentation();
-	private MapaModel model = new MapaModel(loadOntology());
+	private MapRepresentationPolidama map = new MapRepresentationPolidama();
 	private Set<String> agentNames = new HashSet<String>();
 	private Set<String> msgsReceived = new HashSet<String>();
 	
@@ -40,7 +45,7 @@ public class BDIAgentPolidama extends SingleCapabilityAgent {
 		
         // Create initial beliefs
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
-        Belief ontology = new TransientBelief(ONTOLOGY, loadOntology());
+        Belief ontology = new TransientBelief(ONTOLOGY, new MapaModel(loadOntology()));
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal(I_AM_REGISTERED, true);
@@ -60,15 +65,15 @@ public class BDIAgentPolidama extends SingleCapabilityAgent {
                 registerGoalTemplate, RegisterPlanBody.class);
         Plan findSituatedPlan = new DefaultPlan(
                 findSituatedTemplate, FindSituatedPlanBody.class);
-        Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
-                KeepMailboxEmptyPlanBody.class);
+        Plan StayInformedPlan = new DefaultPlan(MessageTemplate.MatchProtocol("Order"),
+                StayInformedPlanBody.class);
         Plan requestMovePlan = new DefaultPlan(
                 requestMoveTemplate, RequestMovePlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(findSituatedPlan);
-        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
+        getCapability().getPlanLibrary().addPlan(StayInformedPlan);
 
         // Init belief base
         getCapability().getBeliefBase().addBelief(iAmRegistered);

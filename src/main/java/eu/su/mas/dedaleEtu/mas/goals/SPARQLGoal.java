@@ -1,23 +1,25 @@
-package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
+package eu.su.mas.dedaleEtu.mas.goals;
 
 import bdi4jade.belief.Belief;
 import bdi4jade.belief.BeliefBase;
 import bdi4jade.goal.AbstractBeliefGoal;
+import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Statement;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class InferenceGoal<K> extends AbstractBeliefGoal<K> {
-    private final Statement statement;
+public class SPARQLGoal<K> extends AbstractBeliefGoal<K> {
+    private final String queryString;
 
-    public InferenceGoal() {
-        statement = null;
+    public SPARQLGoal() {
+        queryString = null;
     }
 
-    public InferenceGoal(K beliefName, Statement statement) {
+    public SPARQLGoal(K beliefName, String queryString) {
         super(beliefName);
-        this.statement = statement;
+        this.queryString = queryString;
     }
 
     public boolean isAchieved(BeliefBase beliefBase) {
@@ -26,13 +28,17 @@ public class InferenceGoal<K> extends AbstractBeliefGoal<K> {
             return false;
         } else {
             Model model = (Model) belief.getValue();
-            return model.contains(this.statement);
+            Query query = QueryFactory.create(this.queryString);
+            QueryExecution qe = QueryExecutionFactory.create(query, model);
+            boolean matched = qe.execSelect().hasNext();
+            qe.close();
+            return matched;
         }
     }
 
     public String toString() {
         return this.getClass().getName() + ": " + this.getBeliefName() + " " +
-                "infers " + this.statement;
+                "infers from query " + this.queryString;
     }
 
     @Override
@@ -40,12 +46,12 @@ public class InferenceGoal<K> extends AbstractBeliefGoal<K> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        InferenceGoal<?> that = (InferenceGoal<?>) o;
-        return Objects.equals(statement, that.statement);
+        SPARQLGoal<?> that = (SPARQLGoal<?>) o;
+        return Objects.equals(queryString, that.queryString);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), statement);
+        return Objects.hash(super.hashCode(), queryString);
     }
 }

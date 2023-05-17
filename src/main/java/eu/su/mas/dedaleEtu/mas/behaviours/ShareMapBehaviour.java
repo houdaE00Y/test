@@ -2,8 +2,8 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama.MapAttribute;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
@@ -20,7 +20,7 @@ import java.util.List;
  * @author hc
  */
 public class ShareMapBehaviour extends OneShotBehaviour {
-    private MapRepresentation myMap;
+    private MapRepresentationPolidama myMap;
     private final List<String> receivers;
 
     /**
@@ -29,7 +29,7 @@ public class ShareMapBehaviour extends OneShotBehaviour {
      * @param myMap     (the map to share)
      * @param receivers the list of agents to send the map to
      */
-    public ShareMapBehaviour(Agent a, List<String> receivers, MapRepresentation myMap) {
+    public ShareMapBehaviour(Agent a, List<String> receivers, MapRepresentationPolidama myMap) {
         super(a);
         this.receivers = receivers;
     	this.myMap = myMap;

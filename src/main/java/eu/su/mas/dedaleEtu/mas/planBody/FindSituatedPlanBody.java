@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
+package eu.su.mas.dedaleEtu.mas.planBody;
 
 import bdi4jade.belief.Belief;
 import bdi4jade.core.SingleCapabilityAgent;
@@ -43,7 +43,7 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
     private void updateOntology(String situatedAgentName) {
         SingleCapabilityAgent agent = (SingleCapabilityAgent) this.myAgent;
         //this agent udate agents list? lista de contactos...∫
-        Belief b = agent.getCapability().getBeliefBase().getBelief(ONTOLOGY);
+        Belief b = getBeliefBase().getBelief(ONTOLOGY);
         Model model = (Model) b.getValue();
         model.add(new StatementImpl(
                 model.createResource("http://mapa#" + situatedAgentName),

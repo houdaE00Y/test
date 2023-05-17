@@ -20,7 +20,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel.AgentType;
 import eu.su.mas.dedaleEtu.mas.behaviours.MyExploOntologyBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ReceiveOntologiesBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SendOntologiesBehaviour;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
@@ -90,7 +90,7 @@ public class OntologyAgent extends AbstractDedaleAgent {
 						agentNames.remove(getAgent().getLocalName());
 						
 						
-						MapRepresentation map = new MapRepresentation();
+						MapRepresentationPolidama map = new MapRepresentationPolidama();
 						MapaModel model = new MapaModel(loadOntology());
 						model.addAgent(getLocalName(), agentType);
 						myAgent.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));

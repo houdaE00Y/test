@@ -8,8 +8,8 @@ import org.apache.jena.rdf.model.Model;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama.MapAttribute;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -17,7 +17,7 @@ import jade.lang.acl.ACLMessage;
 public class SendOntologiesBehaviour extends SimpleBehaviour {
 
 	Set<String> agents;
-	MapRepresentation myMap;
+	MapRepresentationPolidama myMap;
 	MapaModel model;
 	
 	public SendOntologiesBehaviour(final AbstractDedaleAgent myAgent, MapaModel model, Set<String> agents) {

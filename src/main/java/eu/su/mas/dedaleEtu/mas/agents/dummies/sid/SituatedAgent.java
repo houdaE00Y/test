@@ -16,14 +16,17 @@ import org.apache.jena.rdf.model.ModelFactory;
 import eu.su.mas.dedale.env.EntityCharacteristics;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
+import eu.su.mas.dedaleEtu.mas.behaviours.InformBDI;
 import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel;
 import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel.AgentType;
 import eu.su.mas.dedaleEtu.mas.behaviours.MyExploOntologyBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ObserveBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.OrderCheckingBehaviour;
-import eu.su.mas.dedaleEtu.mas.behaviours.ReceiveBDIOntologiesBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.PerformBDIOrders;
 import eu.su.mas.dedaleEtu.mas.behaviours.ReceiveOntologiesBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SendOntologiesBehaviour;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.behaviours.SituatedMoveBehaviour;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.domain.DFService;
@@ -37,8 +40,7 @@ import jade.lang.acl.ACLMessage;
 public class SituatedAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = 1L;
 	public String myBDIAgent;
-	public String resultOrder;
-	public ACLMessage messageBDI = null;
+	public boolean successOrder = false;
 	//private MapaModel model;
 	protected void setup() {
 		super.setup();
@@ -68,11 +70,11 @@ public class SituatedAgent extends AbstractDedaleAgent {
 
 		lb.add(
         		new SimpleBehaviour(this) {
-        			boolean isDone;
+        			boolean isDone = false;
 					@Override
 					public boolean done() {
 						// TODO Auto-generated method stub
-						return false;
+						return isDone;
 					}
 					
 					@Override
@@ -123,15 +125,19 @@ public class SituatedAgent extends AbstractDedaleAgent {
 						agentNames.remove(myBDIAgent);
 
 						
-						MapRepresentation map = new MapRepresentation();
+						MapRepresentationPolidama map = new MapRepresentationPolidama();
 						MapaModel model = new MapaModel(loadOntology());
 						model.addAgent(getLocalName(), agentType);
-						OrderCheckingBehaviour order = new OrderCheckingBehaviour((AbstractDedaleAgent) myAgent);
-						order.addBehaviour(new ReceiveBDIOntologiesBehaviour((AbstractDedaleAgent) myAgent, map, model, myBDIAgent));
-						order.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
-						order.addBehaviour(new MyExploOntologyBehaviour((AbstractDedaleAgent) myAgent, map, model));
-						order.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
-						myAgent.addBehaviour(order);
+						OrderCheckingBehaviour tasks = new OrderCheckingBehaviour((AbstractDedaleAgent) myAgent);
+						OrderCheckingBehaviour orders = new OrderCheckingBehaviour((AbstractDedaleAgent) myAgent);
+						orders.addBehaviour(new SituatedMoveBehaviour((AbstractDedaleAgent) myAgent, map, model));
+
+						tasks.addBehaviour(new PerformBDIOrders((AbstractDedaleAgent) myAgent, orders, map, model, myBDIAgent));
+						tasks.addBehaviour(new ReceiveOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
+						tasks.addBehaviour(new ObserveBehaviour((AbstractDedaleAgent) myAgent, map, model));
+						tasks.addBehaviour(new SendOntologiesBehaviour((AbstractDedaleAgent) myAgent, model, agentNames));
+						tasks.addBehaviour(new InformBDI((AbstractDedaleAgent) myAgent, model, myBDIAgent));
+						myAgent.addBehaviour(tasks);
 						isDone = true;
 					}
 				}

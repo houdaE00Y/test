@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
+package eu.su.mas.dedaleEtu.mas.planBody;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -14,7 +14,8 @@ import jade.lang.acl.ACLMessage;
 import jade.proto.AchieveREInitiator;
 
 public class RequestMovePlanBody extends BeliefGoalPlanBody {
-    private ACLMessage msgReceived;
+    private static final long serialVersionUID = 1L;
+	private ACLMessage msgReceived;
 	private String situatedAgent;
 
     @Override

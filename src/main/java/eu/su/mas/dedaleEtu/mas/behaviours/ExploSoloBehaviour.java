@@ -5,8 +5,8 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama.MapAttribute;
 import jade.core.behaviours.SimpleBehaviour;
 
 import java.util.*;
@@ -30,7 +30,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
     /**
      * Current knowledge of the agent regarding the environment
      */
-    private MapRepresentation myMap;
+    private MapRepresentationPolidama myMap;
 
     /**
      * Nodes known but not yet visited
@@ -41,7 +41,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
      */
     private final Set<String> closedNodes;
 
-    public ExploSoloBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
+    public ExploSoloBehaviour(final AbstractDedaleAgent myagent, MapRepresentationPolidama myMap) {
         super(myagent);
         this.myMap = myMap;
         this.openNodes = new ArrayList<>();
@@ -51,7 +51,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
     @Override
     public void action() {
         if (this.myMap == null)
-            this.myMap = new MapRepresentation();
+            this.myMap = new MapRepresentationPolidama();
 
         //0) Retrieve the current position
         String myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();

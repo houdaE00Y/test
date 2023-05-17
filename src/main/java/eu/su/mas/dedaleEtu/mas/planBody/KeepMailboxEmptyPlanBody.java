@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
+package eu.su.mas.dedaleEtu.mas.planBody;
 
 import bdi4jade.annotation.Parameter;
 import bdi4jade.plan.Plan;

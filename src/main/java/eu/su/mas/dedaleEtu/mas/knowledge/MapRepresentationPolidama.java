@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  *
  * @author hc
  */
-public class MapRepresentation implements Serializable {
+public class MapRepresentationPolidama implements Serializable {
     /**
      * A node is open, closed, or agent
      *
@@ -51,7 +51,7 @@ public class MapRepresentation implements Serializable {
 
     private Random rand = new Random();
     
-    public MapRepresentation() {
+    public MapRepresentationPolidama() {
         //System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         System.setProperty("org.graphstream.ui", "javafx");
         this.g = new SingleGraph("My world vision");

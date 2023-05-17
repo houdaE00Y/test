@@ -12,8 +12,8 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama.MapAttribute;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
@@ -22,7 +22,7 @@ import jade.core.behaviours.TickerBehaviour;
 public class WalkToDestinationAvoidance extends FSMBehaviour {
 
 	private static final long serialVersionUID = 1L;
-	private MapRepresentation myMap;
+	private MapRepresentationPolidama myMap;
 	String objective;
 
 	public void setObjective(String objective) {
@@ -191,7 +191,7 @@ public class WalkToDestinationAvoidance extends FSMBehaviour {
 		}
 	}
 
-	WalkToDestinationAvoidance(AbstractDedaleAgent a, MapRepresentation myMap) {
+	WalkToDestinationAvoidance(AbstractDedaleAgent a, MapRepresentationPolidama myMap) {
 		super(a);
 		assertNotEquals(myMap, null);
 		this.myMap = myMap;
