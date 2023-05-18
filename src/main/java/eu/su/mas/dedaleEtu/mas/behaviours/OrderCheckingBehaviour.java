@@ -26,6 +26,7 @@ public class OrderCheckingBehaviour extends SimpleBehaviour {
 	@Override
 	public void action() {
 		for (Behaviour b : subBehaviours) {
+			if (!b.isRunnable()) b.reset();
 			if (!b.isRunnable()) continue;
 			b.actionWrapper();
 			if (b.done()) {

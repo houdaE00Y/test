@@ -10,10 +10,11 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel.MineralType;
-import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel.NodeType;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.MineralType;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
 import jade.core.behaviours.SimpleBehaviour;
 
 public class MyExploOntologyBehaviour extends SimpleBehaviour {

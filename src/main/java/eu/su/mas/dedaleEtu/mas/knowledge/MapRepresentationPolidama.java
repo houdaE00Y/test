@@ -3,8 +3,9 @@ package eu.su.mas.dedaleEtu.mas.knowledge;
 import dataStructures.serializableGraph.SerializableNode;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedaleEtu.mas.behaviours.MapaModel;
 import javafx.application.Platform;
+import javafx.util.Pair;
+
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -45,6 +46,8 @@ public class MapRepresentationPolidama implements Serializable {
     private final String nodeStyle = defaultNodeStyle + nodeStyle_agent + nodeStyle_open;
 
     private Graph g; //data structure non serializable
+    private HashMap<String, Long> visits;
+    
     //private Viewer viewer; //ref to the display, non-serializable
     private Integer nbEdges;//used to generate the edges ids
     private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
@@ -59,10 +62,26 @@ public class MapRepresentationPolidama implements Serializable {
 
         //Platform.runLater(this::openGui);
         //this.viewer = this.g.display();
-
         this.nbEdges = 0;
+        this.visits = new HashMap<String, Long>();
     }
 
+    public void updateFromOntology(MapaModel model) {
+    	for (String node : model.getOpenNodes()) {
+    		addNode(node, MapAttribute.open);
+    	}
+    	for (String node : model.getClosedNodes()) {
+    		addNode(node, MapAttribute.closed);
+    	}
+    	for (String node : model.getWindyNodes()) {
+    		addNode(node, MapAttribute.closed);    		
+    	}
+    	
+    	for (Pair<String, String> edge : model.getEdges()) {
+    		addEdge(edge.getKey(), edge.getValue());
+    	}
+    }
+    
     /**
      * Add or replace a node and its attribute
      *
@@ -240,10 +259,66 @@ public class MapRepresentationPolidama implements Serializable {
         }
         return null;
     }
+    
+    public void markAsVisitedOnce(String position) {
+    	Long val = visits.getOrDefault(position, 0L);
+    	visits.put(position, val+1);
+    }
+    
+    public List<String> getRouteThroughLeastVisitedNodes(String myPosition, MapaModel model) {
+        //1) Get all openNodes
+        Set<String> opennodes = getOpenNodes().stream().collect(Collectors.toUnmodifiableSet());
+
+        Collection<String> agentPositions = model.getAgentPositions().values();
+        Collection<String> windyPositions = model.getWindyNodes();
+        //System.out.println(windyPositions);
+        HashMap<String, String> parent = new HashMap<String, String>();
+        PriorityQueue<Couple<Long, Couple<ArrayList<String>, String>>> nextToCheck = new PriorityQueue<Couple<Long, Couple<ArrayList<String>, String>>>(g.getNodeCount(), new Comparator<Couple<Long, Couple<ArrayList<String>, String>>>() {
+
+			@Override
+			public int compare(Couple<Long, Couple<ArrayList<String>, String>> arg0, Couple<Long, Couple<ArrayList<String>, String>> arg1) {
+				return arg0.getLeft().compareTo(arg1.getLeft());
+			}
+        	
+		});
+        nextToCheck.add(new Couple<Long, Couple<ArrayList<String>, String>>(0L, new Couple<ArrayList<String>, String>(new ArrayList<String>(),myPosition))); // Don't include ourselves; The list we return can't contain our current node
+        
+        while (!nextToCheck.isEmpty()) {
+        	Couple<Long, Couple<ArrayList<String>, String>> currNodeInfo = nextToCheck.poll();
+        	Long currentVisitedTotal = currNodeInfo.getLeft();
+        	ArrayList<String> currPath = currNodeInfo.getRight().getLeft();
+        	String currNodeName = currNodeInfo.getRight().getRight();
+        	//System.out.println("Checking: " + currNodeName + " total " + currentVisitedTotal + " path " + currPath);
+        	if (currPath.size() >= 6) { // Arbitrary cuttoff
+        		return currPath;
+        	}
+        	
+        	for (String adjacentNode : g.getNode(currNodeName).edges().map(edge -> (edge.getTargetNode().getId().equals(currNodeName) ? edge.getSourceNode().getId() : edge.getTargetNode().getId())).collect(Collectors.toList())) {
+        		if (adjacentNode == null) {
+        			continue;
+        		}
+        		if (agentPositions.contains(adjacentNode)) {
+        			continue;
+        		}
+        		if (windyPositions.contains(adjacentNode)) {
+        			continue;
+        		}
+        		
+        		long extraVisits = currPath.stream().filter(node -> node.equals(adjacentNode)).count();
+        		long totalAccumulatedVisitedSize = currentVisitedTotal + visits.getOrDefault(adjacentNode, 0L) + extraVisits;
+        		@SuppressWarnings("unchecked")
+				ArrayList<String> newPath = (ArrayList<String>) currPath.clone();
+        		newPath.add(adjacentNode);
+            	//System.out.println("Adding: " + adjacentNode + " total " + totalAccumulatedVisitedSize + " path " + newPath);
+    			nextToCheck.add(new Couple<Long, Couple<ArrayList<String>, String>>(totalAccumulatedVisitedSize, new Couple<ArrayList<String>, String>(newPath, adjacentNode)));
+        	}
+        }
+        return null;
+    }
 
     public List<String> getOpenNodes() {
         return this.g.nodes()
-                .filter(x -> x.getAttribute("ui.class") == MapAttribute.open.toString())
+                .filter(x -> x.getAttribute("ui.class").equals(MapAttribute.open.toString()))
                 .map(Node::getId)
                 .collect(Collectors.toList());
     }

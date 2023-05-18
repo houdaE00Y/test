@@ -3,16 +3,18 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentationPolidama;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.proto.AchieveREResponder;
 import jade.proto.SimpleAchieveREResponder;
 
 
-public class PerformBDIOrders extends SimpleAchieveREResponder {
+public class PerformBDIOrders extends AchieveREResponder {
 	private static final long serialVersionUID = 1L;
 	
 	OrderCheckingBehaviour orderExecutors;
@@ -30,9 +32,9 @@ public class PerformBDIOrders extends SimpleAchieveREResponder {
 	}
 	
 	@Override
-	protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
+	protected ACLMessage handleRequest(ACLMessage request) throws NotUnderstoodException, RefuseException {
 		SituatedAgent myAgent = ((SituatedAgent) getAgent());
-    	try {
+		try {
     		MapaModel otherModel = MapaModel.importOntology(request.getContent());
         	model.replaceModel(otherModel);
     	} catch (Exception e) {
@@ -42,7 +44,7 @@ public class PerformBDIOrders extends SimpleAchieveREResponder {
     		System.out.println("Agent "+myAgent.getLocalName()+": Refuse");
 			throw new RefuseException("check-failed");
     	} else {
-    		System.out.println("Agent "+myAgent.getLocalName()+": Agree");
+    		//System.out.println("Agent "+myAgent.getLocalName()+": Agree");
     		return request.createReply(ACLMessage.AGREE);
     	}
 	}
@@ -53,7 +55,7 @@ public class PerformBDIOrders extends SimpleAchieveREResponder {
 		myAgent.successOrder = false;
 		orderExecutors.actionWrapper();
 		if (myAgent.successOrder) {
-			System.out.println("Agent "+myAgent.getLocalName()+": Action successfully performed");
+			//System.out.println("Agent "+myAgent.getLocalName()+": Action successfully performed");
 			return request.createReply(ACLMessage.INFORM);
 		}
 		else {
@@ -61,11 +63,4 @@ public class PerformBDIOrders extends SimpleAchieveREResponder {
 			throw new FailureException("Could not perform the requested action");
 		}	
 	}
-
-	@Override
-	public boolean done() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 }

@@ -1,10 +1,12 @@
 package eu.su.mas.dedaleEtu.mas.planBody;
 
+import bdi4jade.annotation.TransientBelief;
 import bdi4jade.belief.Belief;
 import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -29,8 +31,10 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
             if (results.length > 0)
             	for (DFAgentDescription dfd : results) {
 	        		AID provider = dfd.getName();
-	                if (!provider.getLocalName().equals(this.myAgent.getLocalName()))
-	                    updateOntology(provider.getLocalName());
+	                if (!provider.getLocalName().equals(this.myAgent.getLocalName())) {
+	                	Belief<String,String> belief = (Belief<String,String>)getBeliefBase().getBelief(Constants.SITUATED_AGENT);
+	                	belief.setValue(provider.getLocalName()); 
+	                }
                 }
             // if results.length == 0, no endState is set,
             // so the plan body will run again (if the goal still holds)
@@ -38,16 +42,5 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
             setEndState(Plan.EndState.FAILED);
             e.printStackTrace();
         }
-    }
-
-    private void updateOntology(String situatedAgentName) {
-        SingleCapabilityAgent agent = (SingleCapabilityAgent) this.myAgent;
-        //this agent udate agents list? lista de contactos...∫
-        Belief b = getBeliefBase().getBelief(ONTOLOGY);
-        Model model = (Model) b.getValue();
-        model.add(new StatementImpl(
-                model.createResource("http://mapa#" + situatedAgentName),
-                model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                model.getResource("http://mapa#Agent")));
     }
 }

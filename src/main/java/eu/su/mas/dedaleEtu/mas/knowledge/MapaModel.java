@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours;
+package eu.su.mas.dedaleEtu.mas.knowledge;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,10 +36,12 @@ import org.apache.jena.sparql.engine.iterator.QueryIteratorResultSet;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.OntologyAgent;
+import javafx.util.Pair;
 
 public class MapaModel {
 	Model model;
-
+	long revision;
+	
 	public enum NodeType {
 		Open,
 		Closed
@@ -58,6 +60,7 @@ public class MapaModel {
 	
 	public MapaModel(Model model) {
 		this.model = model;
+		this.revision = 0;
 	}
 	
 	static Pattern patternIdCell = Pattern.compile("^http://mapa#Instance_(.+?)_cell$");
@@ -81,7 +84,16 @@ public class MapaModel {
 	}
 	
 	private void addCheckStmt(StatementImpl stmt) {
-		if (!model.contains(stmt)) model.add(stmt);
+		if (!model.contains(stmt)) {
+			System.out.println("Adding: " + stmt);
+			++revision;
+			model.add(stmt);
+		}
+	}
+	
+	// Number of changes since last time
+	public long revision() {
+		return this.revision;
 	}
 	
 	public void addMineral(String id, MineralType mineral) {
@@ -110,7 +122,9 @@ public class MapaModel {
 	        	QuerySolution entry = result.next();
 	        	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
 	        	if (matcher.find()) {
-	    			model.remove(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("LocatedAt")), getCell(matcher.group(1))));
+	        		if (!matcher.group(1).equals(idNode))  
+		    			model.remove(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("LocatedAt")), getCell(matcher.group(1))));
+	        		else return;
 	        	}
 	        }
 	        qe.close();
@@ -175,9 +189,7 @@ public class MapaModel {
         		getAgent(agentName),
                 model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                 classOfAgent);
-		if (!model.contains(stmt)) {
-			model.add(stmt);
-		}
+		addCheckStmt(stmt);
 	}
 
 	public AgentType getAgentType(String agentName) {
@@ -207,7 +219,9 @@ public class MapaModel {
         	QuerySolution entry = result.next();
         	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
         	if (matcher.find()) {
-    			model.remove(new StatementImpl(getAgent(agentName), model.getProperty(mapa("LocatedAt")), getCell(matcher.group(1))));
+        		if (!matcher.group(1).equals(id))  
+        			model.remove(new StatementImpl(getAgent(agentName), model.getProperty(mapa("LocatedAt")), getCell(matcher.group(1))));
+        		else return;
         	}
         }
         qe.close();
@@ -235,6 +249,32 @@ public class MapaModel {
         qe.close();
 		}
         addCheckStmt(new StatementImpl(getAgent(agentName), model.getProperty(mapa("LocatedAt")), getCell(id)));	
+	}
+	
+	public void addObectiveLocation(String agentName, String id) {
+		{
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Position where {" +
+            "  mapa:Instance_" + agentName + "_agent mapa:IntendsToWalkTo ?Position ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        if (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
+        	if (matcher.find()) {
+        		if (!matcher.group(1).equals(id))  
+        			model.remove(new StatementImpl(getAgent(agentName), model.getProperty(mapa("IntendsToWalkTo")), getCell(matcher.group(1))));
+        		else return;
+        	}
+        }
+        qe.close();
+		}
+        addCheckStmt(new StatementImpl(getAgent(agentName), model.getProperty(mapa("IntendsToWalkTo")), getCell(id)));	
 	}
 	
 	public Map<String, String> getAgentPositions() {
@@ -292,6 +332,7 @@ public class MapaModel {
         for (Entry<String, String> agentPosition : removals.entrySet()) {
         	model.remove(new StatementImpl(getAgent(agentPosition.getKey()), model.getProperty(mapa("LocatedAt")), getCell(agentPosition.getValue())));
         }
+		++revision;
 	}
 	
 	public String getOntology() {
@@ -327,6 +368,70 @@ public class MapaModel {
         qe.close();
 		return returnedList;
 	}
+	
+	public Set<String> getOpenNodes() {
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Node where {" +
+            " ?Node a mapa:Open ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        Set<String> returnedList = new HashSet<String>();
+        while (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+        	if (matcher.find()) returnedList.add(matcher.group(1));
+        }
+        qe.close();
+		return returnedList;
+	}
+	
+	public Set<String> getWindyNodes() {
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Node where {" +
+            " ?Node a mapa:Windy ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        Set<String> returnedList = new HashSet<String>();
+        while (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+        	if (matcher.find()) returnedList.add(matcher.group(1));
+        }
+        qe.close();
+		return returnedList;
+	}
+
+	public Set<Pair<String, String>> getEdges() {
+		Query query = QueryFactory.create
+		(
+			"PREFIX mapa: <http://mapa#> " +
+            "SELECT ?Node1 ?Node2 where {" +
+            " ?Node1 mapa:Adjacent ?Node2 ." +
+            "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        Set<Pair<String, String>> returnedList = new HashSet<Pair<String, String>>();
+        while (result.hasNext()) {
+        	QuerySolution entry = result.next();
+        	Matcher matcher1 = patternIdCell.matcher(entry.get("Node1").toString());
+        	Matcher matcher2 = patternIdCell.matcher(entry.get("Node2").toString());
+        	if (matcher1.find() && matcher2.find()) returnedList.add(new Pair<String, String>(matcher1.group(1), matcher2.group(1)));
+        }
+        qe.close();
+		return returnedList;
+	}
 
 	public void removeClosedNodes(Set<String> closedNodes) {
 		Query query = QueryFactory.create
@@ -357,9 +462,11 @@ public class MapaModel {
                 model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                 model.getResource(mapa("Open"))));
         }
+		++revision;
 	}
 	
 	public void replaceModel(MapaModel mapa) {
+		++revision;
 		this.model = mapa.model;
 	}
 
@@ -426,5 +533,33 @@ public class MapaModel {
         }
 		}
 		return null;
+	}
+	
+	public boolean hasOpenNodes() {
+	    Query query = QueryFactory.create
+		(
+		"PREFIX mapa: <http://mapa#> " +
+		"SELECT ?Node where {" +
+	    " ?Node a mapa:Open ." +
+	    "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        return result.hasNext();
+	}
+	
+	public boolean hasClosedNodes() {
+	    Query query = QueryFactory.create
+		(
+		"PREFIX mapa: <http://mapa#> " +
+		"SELECT ?Node where {" +
+	    " ?Node a mapa:Closed ." +
+	    "}"
+		);
+
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+        ResultSet result = qe.execSelect();
+        return result.hasNext();		
 	}
 }
