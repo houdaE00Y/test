@@ -289,7 +289,7 @@ public class MapRepresentationPolidama implements Serializable {
         	ArrayList<String> currPath = currNodeInfo.getRight().getLeft();
         	String currNodeName = currNodeInfo.getRight().getRight();
         	//System.out.println("Checking: " + currNodeName + " total " + currentVisitedTotal + " path " + currPath);
-        	if (currPath.size() >= 6) { // Arbitrary cuttoff
+        	if (currPath.size() >= 4) { // Arbitrary cuttoff
         		return currPath;
         	}
         	
