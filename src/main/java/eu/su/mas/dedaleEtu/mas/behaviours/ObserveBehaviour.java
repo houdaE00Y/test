@@ -53,9 +53,11 @@ public class ObserveBehaviour extends SimpleBehaviour {
         		//System.out.println(getAgent().getLocalName() + " Found: " + lob.getRight().toString());
         	}
             String nodeId = lob.getLeft().getLocationId();
-            this.myMap.addNewNode(nodeId);
-            model.addNode(nodeId, NodeType.Open);
-            model.addAdjancency(nodeId, myPosition);
+            if (!myPosition.equals(nodeId)) {
+	            this.myMap.addNewNode(nodeId);
+	            model.addNode(nodeId, NodeType.Open);
+	            model.addAdjancency(nodeId, myPosition);
+            }
             boolean isWindNode=false;
             // Check wind
             for (Couple<Observation,Integer> c : lob.getRight()) 	

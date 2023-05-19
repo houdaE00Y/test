@@ -20,11 +20,16 @@ public class StayInformedPlanBody extends AbstractPlanBody {
     @Override
     public void action() {
     	MessageTemplate msgTemplate = MessageTemplate.MatchProtocol("Inform");
-		List<ACLMessage> msgReceived = this.myAgent.receive(msgTemplate, this.myAgent.getCurQueueSize());
-    	if (msgReceived == null || msgReceived.isEmpty()) return;
+    	List<ACLMessage> msgsReceived = null;
+    	while (true) {
+    		List<ACLMessage> candidate = this.myAgent.receive(msgTemplate, 1024*1024);
+    		if (candidate == null || candidate.isEmpty()) break;
+    		msgsReceived = candidate;
+    	}    	
+    	if (msgsReceived == null || msgsReceived.isEmpty()) return;
     	Belief b = getBeliefBase().getBelief(ONTOLOGY);
     	MapaModel model = (MapaModel) b.getValue();
-		MapaModel otherModel = MapaModel.importOntology(msgReceived.get(msgReceived.size()-1).getContent());
+		MapaModel otherModel = MapaModel.importOntology(msgsReceived.get(msgsReceived.size()-1).getContent());
 	    model.replaceModel(otherModel);
 	    MapRepresentationPolidama mapRepresentation = (MapRepresentationPolidama) getBeliefBase().getBelief(MAP_REPRESENTATION).getValue();
 	    mapRepresentation.updateFromOntology(model);
