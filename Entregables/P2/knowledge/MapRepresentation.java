@@ -241,6 +241,11 @@ public class MapRepresentation implements Serializable {
         return null;
     }
 
+    public List<String> getNodes() {
+        return this.g.nodes()
+                .map(Node::getId)
+                .collect(Collectors.toList());
+    }
     public List<String> getOpenNodes() {
         return this.g.nodes()
                 .filter(x -> x.getAttribute("ui.class") == MapAttribute.open.toString())

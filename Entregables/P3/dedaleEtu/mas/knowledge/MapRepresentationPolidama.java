@@ -45,6 +45,8 @@ public class MapRepresentationPolidama implements Serializable {
     private final String nodeStyle_agent = "node.open {" + "fill-color: blue;" + "}";
     private final String nodeStyle = defaultNodeStyle + nodeStyle_agent + nodeStyle_open;
 
+    private final int nodeCount = this.g.getNodeCount();
+
     private Graph g; //data structure non serializable
     private HashMap<String, Long> visits;
     
@@ -446,5 +448,90 @@ public class MapRepresentationPolidama implements Serializable {
     public boolean hasOpenNode() {
         return (this.g.nodes()
                 .anyMatch(n -> n.getAttribute("ui.class") == MapAttribute.open.toString()));
+    }
+
+    public void calculateDistances() {
+        // Crear una matriz para almacenar las distancias entre nodos
+
+        int[][] distances = new int[nodeCount][nodeCount];
+        List<String> nodes = getNodes();
+        // Inicializar todas las distancias a un valor alto (infinito)
+        for (int i = 0; i < nodeCount; i++) {
+            for (int j = 0; j < nodeCount; j++) {
+                distances[i][j] = Integer.MAX_VALUE;
+            }
+        }
+
+        // Calcular las distancias utilizando Depth-First Search (BFS)
+        for (int i = 0; i < nodeCount; i++) {
+            for (int j = 0; j < nodeCount; j++) {
+                if (nodes.get(i) == nodes.get(j)) {
+                    // La distancia de un nodo a sí mismo es 0
+                    distances[i][j] = 0;
+                } else {
+                    // Calcular la distancia utilizando BFS desde el nodo i hasta el nodo j
+                    distances[i][j] = calculateDistanceBFS(nodes.get(i), nodes.get(j));
+                }
+            }
+        }
+        // STORE THE distances wherever they need to be
+    }
+
+    private int calculateDistanceBFS(String source, String destination) {
+        // Obtener el grafo del mapa
+        List<String> graph = getNodes();
+
+        // Cola para realizar la búsqueda en anchura
+        Queue<String> queue = new LinkedList<>();
+
+        // Conjunto para almacenar los nodos visitados
+        Set<String> visited = new HashSet<>();
+
+        // Almacena las distancias desde el nodo fuente
+        Map<String, Integer> distances = new HashMap<>();
+
+        // Inicializar todas las distancias a un valor alto (infinito)
+        //Arrays.fill(distances, Integer.MAX_VALUE);
+
+        for (String nodeId : graph) {
+            distances.put(nodeId, Integer.MAX_VALUE);
+        }
+
+        // Inicializar la distancia desde el nodo fuente a sí mismo como 0
+        distances.put(source, 0);
+
+        // Agregar el nodo fuente a la cola
+        queue.offer(source);
+
+        // Realizar la búsqueda en anchura
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+
+            if (current == destination) {
+                // Se ha encontrado el nodo destino, retornar la distancia correspondiente
+                return distances.get(graph.indexOf(current));
+            }
+
+            // Obtener los vecinos del nodo actual en el grafo
+            List<String> adjacentNodes = g.getNode(current).edges().map(edge -> (edge.getTargetNode().getId().equals(current) ? edge.getSourceNode().getId() : edge.getTargetNode().getId()))
+                    .collect(Collectors.toUnmodifiableList());
+            if (adjacentNodes != null) {
+                for (String neighbor : adjacentNodes) {
+                    if (!visited.contains(neighbor)) {
+                        // Actualizar la distancia del vecino si es menor que la distancia actual
+                        if (distances.get(graph.indexOf(current)) + 1 < distances.get(graph.indexOf(neighbor))) {
+                            distances.set(graph.indexOf(neighbor), distances.get(graph.indexOf(current)) + 1);
+                        }
+
+                        // Agregar el vecino a la cola y marcarlo como visitado
+                        queue.offer(neighbor);
+                        visited.add(neighbor);
+                    }
+                }
+            }
+        }
+
+        // No se ha encontrado una ruta desde el nodo fuente al nodo destino
+        return -1;
     }
 }
