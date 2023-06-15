@@ -534,4 +534,34 @@ public class MapRepresentationPolidama implements Serializable {
         // No se ha encontrado una ruta desde el nodo fuente al nodo destino
         return -1;
     }
+
+    public int calculateMinEccentricity() {
+        // Create an array to store eccentricities
+        int[] eccentricities = new int[nodeCount];
+        // Initialize all eccentricities to 0
+        for (int i = 0; i < nodeCount; i++) {
+            eccentricities[i] = 0;
+        }
+        // Calculate eccentricities
+        for (int i = 0; i < nodeCount; i++) {
+            for (int j = 0; j < nodeCount; j++) {
+                if (i != j) {
+                    int distance = calculateDistanceBFS(nodes.get(i), nodes.get(j));
+                    // Update the eccentricity if the distance is greater
+                    if (distance > eccentricities[i]) {
+                        eccentricities[i] = distance;
+                    }
+                }
+            }
+        }
+        // Find and return the minimum eccentricity
+        int minEccentricity = Integer.MAX_VALUE;
+        for (int i = 0; i < nodeCount; i++) {
+            if (eccentricities[i] < minEccentricity) {
+                minEccentricity = eccentricities[i];
+            }
+        }
+        return minEccentricity;
+    }
+
 }
